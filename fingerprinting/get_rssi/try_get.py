@@ -1,0 +1,53 @@
+import cflib.drivers.crazyradio as crazyradio
+from time import sleep
+
+import cflib
+from cflib.crazyflie import Crazyflie
+
+if __name__ == "__main__":
+
+    # Initialize the low-level drivers (don't list the debug drivers)
+    cflib.crtp.init_drivers(enable_debug_driver=False)
+    # Scan for Crazyflies and use the first one found
+    #print('Scanning interfaces for Crazyflies...')
+    #available = cflib.crtp.scan_interfaces()
+    #print('Crazyflies found:')
+    #for i in available:
+    #    print(i[0])
+    #print(available)
+
+    
+
+    for _ in range(10):
+        count = 0
+        print('Scanning interfaces for Crazyflies...')
+        available = cflib.crtp.scan_interfaces()
+        print('Crazyflies found:')
+        print(available)
+
+        if available:
+            cradio = crazyradio.Crazyradio()
+            cradio.set_data_rate(cradio.DR_2MPS)
+            cradio.set_channel(70)
+
+            print("1")
+            while count < 1:
+                pk = cradio.send_packet([0xff, ])
+    
+                if pk.ack and len(pk.data) > 2 and \
+                    pk.data[0] & 0xf3 == 0xf3 and pk.data[1] == 0x01:
+    
+                #print("RSSI: -{}dBm".format(pk.data[2]))
+                    print ("RSSI: %d" % pk.data[2])
+                    count += 1
+                    rss = pk.data[2]
+        else:
+            print("0")
+            print ("RSSI: 10000")
+
+        sleep(0.1)
+
+        cradio.close()
+        
+
+    #if 
