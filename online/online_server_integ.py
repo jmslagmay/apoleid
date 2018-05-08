@@ -54,8 +54,10 @@ class Text_Input(threading.Thread):
         #print(room_lookup['209'][1])
         
         count = 0
-        while self.running == True:
-            
+        while self.running:
+            #print ("while: \r")
+            #print(self.running)
+
             text = ""
             
             
@@ -93,7 +95,14 @@ class Text_Input(threading.Thread):
                     time.sleep(0.1)
                     broadcast_data(self.s_sock, text)
                     while command_done == 0:
-                        pass
+                        #pass
+                        if self.running:
+                            pass
+                        else:
+                            break
+
+                    if self.running == 0:
+                        break
 
                     #print("hey " + str(command_done) + " " + str(get_rss_flag))
                     command_done = 0
@@ -104,7 +113,14 @@ class Text_Input(threading.Thread):
                     broadcast_data(self.s_sock, text)
                     get_rss_flag = 1
                     while get_rss_flag == 1:
-                        pass
+                        #pass
+                        if self.running:
+                            pass
+                        else:
+                            break
+
+                    if self.running == 0:
+                        break
 
                     print ("\t\t\t\tSTATUS: Getting DR location...")
                     text = "get_dr_loc"
@@ -112,7 +128,14 @@ class Text_Input(threading.Thread):
                     broadcast_data(self.s_sock, text)
                     get_dr_flag = 1
                     while get_dr_flag == 1:
-                        pass
+                        #pass
+                        if self.running:
+                            pass
+                        else:
+                            break
+        
+                    if self.running == 0:
+                        break
 
                     #print(cycle_on)
                     print ("\t\t\t\tSTATUS: Computing actual location...")
@@ -124,8 +147,12 @@ class Text_Input(threading.Thread):
 
             #print("Op started: %d" % op_started)
             time.sleep(0)
+
+        print("Thread exited while loop")
     def kill(self):
         self.running = 0
+        print(self.running)
+        print("killed")
     
 
 #import fingerprint database
@@ -371,7 +398,7 @@ if __name__ == "__main__":
     #stopper = threading.Event()
         
     #PORT = int (input('Enter port number: '))
-    PORT = 50191
+    PORT = 50190
 
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     # this has no effect, why ?
@@ -389,7 +416,7 @@ if __name__ == "__main__":
     
     thread_start = 0
 
-    #server_input = Text_Input(server_socket)
+    server_input = Text_Input(server_socket)
     #server_input.start()
 
     
@@ -412,10 +439,10 @@ if __name__ == "__main__":
                     broadcast_data(sockfd, "[%s:%s] entered room" % addr)
 
                     if len(CONNECTION_LIST) == (STATION_COUNT + 1) and thread_start == 0:
-                        server_input = Text_Input(server_socket)
+                        #server_input = Text_Input(server_socket)
                         server_input.start()
                         thread_start = 1
-                        #print ("hey")
+                        print ("hey")
     
                  
                 #Some incoming message from a client
@@ -510,7 +537,7 @@ if __name__ == "__main__":
                         else :
                             username = USERS[index]
                             broadcast_data(sock, "\r%s is offline\n" % username)
-                            print ("%s is offline laaaaaaa" % username)
+                            print ("%s is offline" % username)
                             del NUMBER[index]
                             del USERS[index]
                             del IP[index]
@@ -523,7 +550,7 @@ if __name__ == "__main__":
                     except:
                         username = USERS[index]
                         broadcast_data(sock, "%s is offline" % username)
-                        print ("%s is offline hmmmm" % username)
+                        print ("%s is offline" % username)
                         del NUMBER[index]
                         del USERS[index]
                         del IP[index]
@@ -533,7 +560,10 @@ if __name__ == "__main__":
                         continue
  
     except KeyboardInterrupt:
+        #server_input._stop()
         server_input.kill()
+        #print(server_input.is_alive)
+        #server_input.join()
         #server_input.join()
         server_socket.close()
 

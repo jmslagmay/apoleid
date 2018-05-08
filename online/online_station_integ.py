@@ -9,22 +9,22 @@ import threading
 import cflib.crtp
 from cflib.crazyflie import Crazyflie
 from cflib.crazyflie.syncCrazyflie import SyncCrazyflie
-from cflib.positioning.motion_commander import MotionCommander
+from cflib.positioning.motion_commander_edited import MotionCommander
 
 from cflib.crazyflie.log import LogConfig
 from cflib.crazyflie.syncLogger import SyncLogger
 
 URI = 'radio://0/70/2M'
-HEIGHT_MIN = 0.075
+HEIGHT_MIN = 0.125
 HEIGHT_MAX = 0.6
 
-APPEND_LIMIT = 10
+APPEND_LIMIT = 5
 
-TARGET_SIZE = 0.5
-Proportion = 1.2 / 1.5
-MOVE_SIZE =  TARGET_SIZE  / Proportion #est m/s
+TARGET_SIZE = 0.5 #meters per movement
+Proportion = 1.2 / 1.5    #real output / target output
+MOVE_SIZE =  TARGET_SIZE  / Proportion #more accurate meters per movemet
 
-MOVE_SIZE = 0.5
+MOVE_SIZE = 0.5    # comment out to do accurate movement vs predefined intervals
 TURN_SIZE =  45 #est degs/sec
 RISE_SIZE = 0.05 #m
 
@@ -37,11 +37,14 @@ fw = 0
 left = 0
 angle = 0
 
-commandLookup = ["stabilizing...", "forward", "reverse", "left", "right", "yaw left", "yaw right", "ascending", "descending"]
+will_takeoff = 1
+launch_type = 1
+#1 for original motion commander
+#2 for custom launch version
 
+commandLookup = ["hovering", "forward", "reverse", "left", "right", "yaw left", "yaw right", "ascending", "descending"]
 
-#commands = [0,1,9]
-
+#commands = [0,360,10]
 #0 = stall
 #1 = fw
 #2 = rv
@@ -51,6 +54,8 @@ commandLookup = ["stabilizing...", "forward", "reverse", "left", "right", "yaw l
 #6 = yaw right
 #7 = add height
 #8 = decrease height
+#9 = STOP Program
+#10 = Land and STOP
 
 # Only output errors from the logging framework
 logging.basicConfig(level=logging.ERROR)
@@ -84,20 +89,20 @@ class commander(threading.Thread):
         commands = []        
 
         while self.running == True:
+            print("Thread start")
             # Initialize the low-level drivers (don't list the debug drivers)
             cflib.crtp.init_drivers(enable_debug_driver=False)
-            print("Thread start")
+            print(launch_type)
+            print(will_takeoff)
 
             with SyncCrazyflie(URI, cf=Crazyflie(rw_cache='./cache')) as scf:
                 commander_start = 1
-                with MotionCommander(scf) as mc:
+                with MotionCommander(scf,default_height= 0.5,will_takeoff = will_takeoff, launch_type=launch_type,minimum_height = HEIGHT_MIN) as mc:
+                    cf = mc._cf
             #++++++++++++++++++++++++++++++++++++++++++ Launch Drone
-                    time.sleep(1)
-                    mc.up(0.5)
-                    time.sleep(1)
-
-                    print("Launch DONE. Height achieved: " + str(height))
-
+            #        print("---RISING!---")
+            #++++++++++++++++++++++++++++++++++++++++++ Launch Drone
+                    #mc._is_flying = True # USELESS FOR WITH STATTEMENT
             #++++++++++++++++++++++++++++++++++++++++++
 
                     mc.stop()
@@ -112,10 +117,12 @@ class commander(threading.Thread):
                                     commands.append(0)  #STALL NUMBER
                                 else:
                                     commands.append(9)  #KILL NUMBER
+                        
+
                             if commands[0] == 0:
                                 mc.stop()
                                 time.sleep(1)
-                            
+
                             
                             elif commands[0] == 1:
                                 mc.forward(MOVE_SIZE, velocity=MOVE_SPEED)
@@ -128,7 +135,7 @@ class commander(threading.Thread):
                                     dr_x -= 0.5
                                 elif (orientation == 3):
                                     dr_y -= 0.5
-                                
+
                             elif commands[0] == 2:
                                 mc.back(MOVE_SIZE, velocity=MOVE_SPEED)
                                 #print ("reverse")
@@ -152,7 +159,7 @@ class commander(threading.Thread):
                                 elif (orientation == 2):
                                     dr_y -= 0.5
                                 elif (orientation == 3):
-                                    dr_x += 0.5
+                                    dr_x += 0.5                            
 
                             elif commands[0] == 4:
                                 mc.right(MOVE_SIZE, velocity=MOVE_SPEED)
@@ -170,18 +177,9 @@ class commander(threading.Thread):
                             elif commands[0] == 5:
                                 mc.turn_left(TURN_SIZE)
                                 #print ("yaw left")
-                                if orientation == 3:
-                                    orientation = 0
-                                else:
-                                    orientation += 1
-
                             elif commands[0] == 6:
                                 mc.turn_right(TURN_SIZE)
                                 #print ("yaw right")
-                                if orientation == 0:
-                                    orientation = 3
-                                else:
-                                    orientation -= 1
                             
                             
                             elif commands[0] == 7:
@@ -202,20 +200,29 @@ class commander(threading.Thread):
                                 mc.stop()
                                 break
                             
+                            elif commands[0] == 10:
+                                #++++++++++++++++++++++++++++++++++++++++++ Landing Drone=
+                                print("!!!-Starting Landing Sequence-!!!")
+                                mc.land2()
+                            
+                                break
+                            
                             
                             elif commands[0] == 360:
-                                mc.circle_left(0.5,velocity = MOVE_SPEED,angle_degrees = 720)
-
+                                mc.circle_left(0.3,velocity = MOVE_SPEED,angle_degrees = 720)
+                                mc.circle_right(0.3,velocity = MOVE_SPEED,angle_degrees = 720)
                             time.sleep(0.1)
                             mc.stop()
 
                             #print (commands)
-                            print ("COM: " + str(commandLookup[commands[0]]) + ". " + str(len(commands) - 2) + " commands left before landing.")
+                            if commands[0] > 0 and commands[0]<9:
+                                appends = 0
 
-                            #print("loooooool")
+                            print ("COM: " + str(commandLookup[commands[0]]) + ".\t\t" + str(len(commands) - 2) + " commands left before landing.")
+
+
                             commander_busy = 0
                             commands.pop(0)
-
                     except KeyboardInterrupt:
                         print("---KILLSWITCH ACTIVATED---")
                         print("---EMERGENCY LANDING IMMINENT---")
@@ -223,10 +230,6 @@ class commander(threading.Thread):
             #++++++++++++++++++++++++++++++++++++++++++
 
                     print("Sequence Finished")
-            #++++++++++++++++++++++++++++++++++++++++++ Landing Drone
-
-                    print("!!!-Starting Landing Sequence-!!!")
-                    mc.stop()
                     
             #++++++++++++++++++++++++++++++++++++++++++
                 
@@ -240,6 +243,7 @@ class commander(threading.Thread):
             time.sleep(0)
     def kill(self):
         self.running = 0
+        #mc.land2()
 
 def get_rssi(sock, station_no):
 
@@ -368,7 +372,9 @@ if __name__ == "__main__":
     connected = 0
 
     orientation = 1
-     
+    
+    commander_thread = commander()
+ 
     if(len(sys.argv) < 3) :
         print ('Usage : python3 filename hostname port')
         sys.exit()
@@ -405,8 +411,12 @@ if __name__ == "__main__":
                 if sock == s:
                     rcv_data = sock.recv(4096)
                     data = rcv_data.decode('ascii')
+                    print(data)
                     if not data :
                         print ('\nDisconnected from chat server 1')
+                        commands.append(10)
+                        commander_thread.kill()
+                        commander_thread.join()
                         sys.exit()
                     else :
                         #sys.stdout.write(data)
@@ -439,7 +449,7 @@ if __name__ == "__main__":
                                 #print (data)
                                 #print ("lol")
                                 if int(parsed_data[1]) == station_no:
-                                    commander_thread = commander()
+                                    
                                     commander_thread.start()
 
                                     while commander_start != 1:
@@ -504,4 +514,6 @@ if __name__ == "__main__":
         print ('Disconnecting from server...')
         print ('\nDisconnected from chat server 2')
         s.close()
+        commands.append(10)
         commander_thread.kill()
+        commander_thread.join()
