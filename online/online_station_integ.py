@@ -86,7 +86,7 @@ class commander(threading.Thread):
         # flag if station is connected to drone
         global connected
 
-        commands = []        
+        commands = []
 
         while self.running == True:
             print("Thread start")
@@ -117,13 +117,13 @@ class commander(threading.Thread):
                                     commands.append(0)  #STALL NUMBER
                                 else:
                                     commands.append(9)  #KILL NUMBER
-                        
+
 
                             if commands[0] == 0:
                                 mc.stop()
                                 time.sleep(1)
 
-                            
+
                             elif commands[0] == 1:
                                 mc.forward(MOVE_SIZE, velocity=MOVE_SPEED)
                                 #print ("fw")
@@ -147,8 +147,8 @@ class commander(threading.Thread):
                                     dr_x += 0.5
                                 elif (orientation == 3):
                                     dr_y += 0.5
-                            
-                            
+
+
                             elif commands[0] == 3:
                                 mc.left(MOVE_SIZE, velocity=MOVE_SPEED)
                                 #print ("left")
@@ -159,7 +159,7 @@ class commander(threading.Thread):
                                 elif (orientation == 2):
                                     dr_y -= 0.5
                                 elif (orientation == 3):
-                                    dr_x += 0.5                            
+                                    dr_x += 0.5
 
                             elif commands[0] == 4:
                                 mc.right(MOVE_SIZE, velocity=MOVE_SPEED)
@@ -172,42 +172,42 @@ class commander(threading.Thread):
                                     dr_y += 0.5
                                 elif (orientation == 3):
                                     dr_x -= 0.5
-                            
-                            
+
+
                             elif commands[0] == 5:
                                 mc.turn_left(TURN_SIZE)
                                 #print ("yaw left")
                             elif commands[0] == 6:
                                 mc.turn_right(TURN_SIZE)
                                 #print ("yaw right")
-                            
-                            
+
+
                             elif commands[0] == 7:
                                 if (height + RISE_SIZE) <=HEIGHT_MAX:
-                                    mc.up(RISE_SIZE) 
+                                    mc.up(RISE_SIZE)
                                 else:
                                     print("Heigh MAX Reached")
                                 #print("Ascend")
-                            
+
                             elif commands[0] == 8:
                                 if (height - RISE_SIZE) >= 0.225:
-                                    mc.down(RISE_SIZE) 
+                                    mc.down(RISE_SIZE)
                                 else:
                                     print("Heigh MAX Reached")
                                 #print("Descend")
-                            
+
                             elif commands[0] == 9:
                                 mc.stop()
                                 break
-                            
+
                             elif commands[0] == 10:
                                 #++++++++++++++++++++++++++++++++++++++++++ Landing Drone=
                                 print("!!!-Starting Landing Sequence-!!!")
                                 mc.land2()
-                            
+
                                 break
-                            
-                            
+
+
                             elif commands[0] == 360:
                                 mc.circle_left(0.3,velocity = MOVE_SPEED,angle_degrees = 720)
                                 mc.circle_right(0.3,velocity = MOVE_SPEED,angle_degrees = 720)
@@ -226,19 +226,19 @@ class commander(threading.Thread):
                     except KeyboardInterrupt:
                         print("---KILLSWITCH ACTIVATED---")
                         print("---EMERGENCY LANDING IMMINENT---")
-                    
+
             #++++++++++++++++++++++++++++++++++++++++++
 
                     print("Sequence Finished")
-                    
+
             #++++++++++++++++++++++++++++++++++++++++++
-                
+
                     print("DONE\nNow closing")
 
                 if done == 1:
                     self.running = False
 
-                
+
 
             time.sleep(0)
     def kill(self):
@@ -250,7 +250,7 @@ def get_rssi(sock, station_no):
     cradio = crazyradio.Crazyradio()
     cradio.set_data_rate(cradio.DR_2MPS)
     cradio.set_channel(70)
-    
+
     count = 0
     #delay = (float(station_no) - 1) / 10
     delay = (float(station_no) - 1)
@@ -259,7 +259,7 @@ def get_rssi(sock, station_no):
     #print (addr)
     rss = 0
     total = 0
-    
+
     #RSS_list = []
 
     while count < 50:
@@ -283,7 +283,7 @@ def get_rssi(sock, station_no):
             #print("hi")
             #rss = 10000
 
-    
+
 
     drone = 0
 
@@ -316,7 +316,7 @@ def get_rssi(sock, station_no):
                 rss += pk.data[2]
 
         rss = rss / x
-        rss = int(rss)        
+        rss = int(rss)
 
     else:
         rss = 10000
@@ -324,27 +324,31 @@ def get_rssi(sock, station_no):
 
     cradio.close()
     print("RSSI: %d" % rss)
+    time.sleep(0.2)
     return rss
-    
+
 def get_rssi_connected():
     global scf
 
-    log_rssi = LogConfig(name='RSSI', period_in_ms=1000)
+    log_rssi = LogConfig(name='RSSI', period_in_ms=10)
     log_rssi.add_variable('radio.rssi', 'float')
 
     with SyncLogger(scf, log_rssi) as logger:
     #    endTime = time.time() + 10
-
+        #print("Entered SyncLogger")
+        #print(logger)
+        #print("Logger printed")
         for log_entry in logger:
+            print ("Logging RSS")
             timestamp = log_entry[0]
             data = log_entry[1]
             logconf_name = log_entry[2]
 
                     #print('[%d][%s]: %s' % (timestamp, logconf_name, data))
             print(data["radio.rssi"])
-            
+
             return(data["radio.rssi"])
- 
+
 #main function
 if __name__ == "__main__":
 
@@ -372,37 +376,37 @@ if __name__ == "__main__":
     connected = 0
 
     orientation = 1
-    
+
     commander_thread = commander()
- 
+
     if(len(sys.argv) < 3) :
         print ('Usage : python3 filename hostname port')
         sys.exit()
-    
+
     host = sys.argv[1]
     port = int(sys.argv[2])
 
     station_no = int(input("Station No: "))
     #host = raw_input('Enter IP address: ')
     #port = int(raw_input('Enter port number: '))
- 
+
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.settimeout(2)
-     
+
     # connect to remote host
     try :
         s.connect((host, port))
     except :
         print ('Unable to connect')
         sys.exit()
-     
+
     print ('Connected to remote host. Start sending messages')
 
     try:
         while 1:
             #socket_list = [sys.stdin, s]
             socket_list = [s]
- 
+
             # Get the list sockets which are readable
             read_sockets, write_sockets, error_sockets = select.select(socket_list , [], [])
 
@@ -427,7 +431,7 @@ if __name__ == "__main__":
 
                         if " " in data:
                             parsed_data = data.split(" ")
-                            
+
                             #print("hey")
                             #print(parsed_data)
                             #print("\n")
@@ -449,7 +453,7 @@ if __name__ == "__main__":
                                 #print (data)
                                 #print ("lol")
                                 if int(parsed_data[1]) == station_no:
-                                    
+
                                     commander_thread.start()
 
                                     while commander_start != 1:

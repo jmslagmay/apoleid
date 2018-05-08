@@ -86,6 +86,7 @@ class Text_Input(threading.Thread):
                         #op_started = 1
 
             else:
+                print("Connected: %d" % connected)
                 if cycle_on == 0 and connected == 1:
                     cycle_on = 1
                     command = path_planning()
@@ -146,7 +147,7 @@ class Text_Input(threading.Thread):
                     ##### INSERT IR CODE HERE
 
             #print("Op started: %d" % op_started)
-            time.sleep(0)
+            time.sleep(0.2)
 
         print("Thread exited while loop")
     def kill(self):
@@ -398,7 +399,7 @@ if __name__ == "__main__":
     #stopper = threading.Event()
         
     #PORT = int (input('Enter port number: '))
-    PORT = 50190
+    PORT = 50191
 
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     # this has no effect, why ?
@@ -423,8 +424,9 @@ if __name__ == "__main__":
     try:
         while 1:
             # Get the list sockets which are ready to be read through select
+            #print("While 1")
             read_sockets,write_sockets,error_sockets = select.select(CONNECTION_LIST,[],[])
-
+            #print("while in main")
             for sock in read_sockets:
                 #New connection
                 if sock == server_socket:
@@ -498,7 +500,9 @@ if __name__ == "__main__":
                                                     station = measured_rss.index(minimum) + 1
                                                     print("\t\t\t\tSTATUS: Connecting to Station %d..." % station)
                                                     text = "connect " + str(station)
+                                                    print("Text")
                                                     broadcast_data(server_socket, text)
+                                                    print("Text broadcasted")
 
                                                 else:                                                
                                                     print ("\t\t\t\tSTATUS: Done getting RSSI...")
@@ -537,7 +541,7 @@ if __name__ == "__main__":
                         else :
                             username = USERS[index]
                             broadcast_data(sock, "\r%s is offline\n" % username)
-                            print ("%s is offline" % username)
+                            print ("%s is offline 1" % username)
                             del NUMBER[index]
                             del USERS[index]
                             del IP[index]
@@ -545,26 +549,32 @@ if __name__ == "__main__":
                             n = n - 1
                             sock.close()
                             CONNECTION_LIST.remove(sock)
+                            server_input.kill()
+                            server_input.join()
                             continue
                                              
                     except:
                         username = USERS[index]
                         broadcast_data(sock, "%s is offline" % username)
-                        print ("%s is offline" % username)
+                        print ("%s is offline 2" % username)
                         del NUMBER[index]
                         del USERS[index]
                         del IP[index]
                         n = n - 1
                         sock.close()
                         CONNECTION_LIST.remove(sock)
+                        server_input.kill()
+                        server_input.join()
+                        #print("Killed")
                         continue
  
     except KeyboardInterrupt:
         #server_input._stop()
+        
         server_input.kill()
         #print(server_input.is_alive)
         #server_input.join()
-        #server_input.join()
+        server_input.join()
         server_socket.close()
 
     #server_socket.close()
