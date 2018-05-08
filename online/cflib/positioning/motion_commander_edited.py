@@ -51,24 +51,34 @@ else:
     from queue import Queue, Empty
 
 
+WILL_TAKEOFF = 1
+LAUNCH_MODE = 1
 class MotionCommander:
     """The motion commander"""
     VELOCITY = 0.2
     RATE = 360.0 / 5
 
-    def __init__(self, crazyflie, default_height=0.3):
+    def __init__(self, crazyflie, default_height=0.3, will_takeoff = WILL_TAKEOFF, launch_type = LAUNCH_MODE, minimum_height = 0.125):
         """
         Construct an instance of a MotionCommander
 
         :param crazyflie: a Crazyflie or SyncCrazyflie instance
         :param default_height: the default height to fly at
         """
+        global LAUNCH_MODE
+        global WILL_TAKEOFF
+        LAUNCH_MODE = launch_type
+        WILL_TAKEOFF = will_takeoff
+
+
         if isinstance(crazyflie, SyncCrazyflie):
             self._cf = crazyflie.cf
         else:
             self._cf = crazyflie
 
         self.default_height = default_height
+        self.minimum_height = minimum_height
+        print(minimum_height)
 
         self._is_flying = False
         self._thread = None
@@ -100,20 +110,38 @@ class MotionCommander:
 
         if height is None:
             height = self.default_height
-        height = 0.4
-        print("custom rise")
-        time.sleep(5)
-        self.up(height, 1)
+
+        #self.up(height, velocity)
+
+        if WILL_TAKEOFF == 1:
+            print("takkking offf")
+            if LAUNCH_MODE == 1:
+                print("motion commander launch")
+                #self.up(height, velocity)
+                #self.up(height, 1)
+                self.up(self.minimum_height,1)
+                self.up((height-self.minimum_height), 0.5)
+
+            elif LAUNCH_MODE == 2:
+                print("custom rise ")
+                for y in range(10):
+                    if (y/25) > 0.125:
+                        temp_height = y/25
+                        self._cf.commander.send_hover_setpoint(0, 0, 0, temp_height)
+                        time.sleep(0.1)
+                    else:
+                        pass 
+                
+                self._cf.commander.send_hover_setpoint(0, 0, 0, temp_height)
+                time.sleep(0.1)
+
+        else:
+            print("no take off")
+            pass
 
     def land(self, velocity=VELOCITY):
         """
-        Go straight down and turn off the motors.
-
-        Do not call this function if you use the with keyword. Landing is
-        done automatically when the context goes out of scope.
-
-        :param velocity: The velocity (meters/second) when going down
-        :return:
+        Signal is disconected without landing
         """
         if self._is_flying:
             #self.down(self._thread.get_height(), velocity)
@@ -123,6 +151,7 @@ class MotionCommander:
 
             #self._cf.commander.send_stop_setpoint()
             self._is_flying = False
+
     def land2(self, velocity=VELOCITY):
         """
         Go straight down and turn off the motors.
@@ -141,6 +170,7 @@ class MotionCommander:
 
             self._cf.commander.send_stop_setpoint()
             self._is_flying = False
+
 
     def __enter__(self):
         self.take_off()
