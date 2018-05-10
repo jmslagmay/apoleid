@@ -12,20 +12,7 @@ def broadcast_data (sock, message):
                 socket.close()
                 CONNECTION_LIST.remove(socket)
 
-#class SignalHandler:
-#    stopper = None
-#
-#    def __init__(self, stopper):
-#        self.stopper = stopper
-#
-#    def __call__(self, signum, frame):
-#        self.stopper.set()
-#
-#        sys.exit(0)
-
-class Text_Input(threading.Thread):
-
-    #stopper = None
+class commanding_thread(threading.Thread):
 
     def __init__(self, s_sock):
         threading.Thread.__init__(self)
@@ -33,18 +20,19 @@ class Text_Input(threading.Thread):
 #        self.stopper = stopper
         self.running = 1
     def run(self):
+        # --------- FLAGS ----------
         global get_rss_flag
-        #global x
-        #global y
-        #global z
+
         global op_started
         global cycle_on
         global command_done
         global get_dr_flag
         global connected
 
+        # command received from Unity
         global command
 
+        # actual location
         global current_x
         global current_y
         global current_z
@@ -55,11 +43,7 @@ class Text_Input(threading.Thread):
 
         count = 0
         while self.running:
-            #print ("while: \r")
-            #print(self.running)
-
             text = ""
-
 
             if op_started == 0 and count == 0:
                 count += 1
@@ -163,8 +147,6 @@ class Text_Input(threading.Thread):
 def import_db(station_count):
     global csv_data
     global fp_db
-
-
 
     db = open("dummy_db1.csv", "r")
     db_content = db.read()
@@ -445,7 +427,7 @@ if __name__ == "__main__":
 
     thread_start = 0
 
-    server_input = Text_Input(server_socket)
+    server_input = commanding_thread(server_socket)
     #server_input.start()
 
 
@@ -469,7 +451,7 @@ if __name__ == "__main__":
                     broadcast_data(sockfd, "[%s:%s] entered room" % addr)
 
                     if len(CONNECTION_LIST) == (STATION_COUNT + 1) and thread_start == 0:
-                        #server_input = Text_Input(server_socket)
+                        #server_input = commanding_thread(server_socket)
                         server_input.start()
                         thread_start = 1
                         print ("hey")
