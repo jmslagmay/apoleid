@@ -1,5 +1,5 @@
-import socket, select, time, sys, threading, signal, math
- 
+import socket, select, time, sys, threading, signal, math, zmq
+
 #Function to broadcast chat messages to all connected clients
 def broadcast_data (sock, message):
     #Do not send the message to master socket and the client who has send us the message
@@ -14,7 +14,7 @@ def broadcast_data (sock, message):
 
 #class SignalHandler:
 #    stopper = None
-#    
+#
 #    def __init__(self, stopper):
 #        self.stopper = stopper
 #
@@ -52,21 +52,21 @@ class Text_Input(threading.Thread):
         room_lookup = {'209': [0, -1, 0], '210': [0, -1, 0], '207': [0, 0, 0], '208': [0, 0, 0], '206': [0, 7, 0], '204': [0, 9, 0], '205': [0, 12, 0], '201': [0, 19, 0], '203': [0, 19, 0], '202': [0, 21, 0], '220': [-20, 24, 0], '225': [-46, 24, 0], '226': [-48, 30, 0], '227': [-48, 28, 0], '228': [-48, 21, 0], '229': [-48, 15, 0]}
         #print(room_lookup)
         #print(room_lookup['209'][1])
-        
+
         count = 0
         while self.running:
             #print ("while: \r")
             #print(self.running)
 
             text = ""
-            
-            
+
+
             if op_started == 0 and count == 0:
                 count += 1
                 print (count)
                 text = input('')
-                
-                #broadcast_data(self.s_sock, text)                
+
+                #broadcast_data(self.s_sock, text)
                 #time.sleep(0.1)
                 if " " in text:
                     #text = ""
@@ -80,9 +80,12 @@ class Text_Input(threading.Thread):
                         time.sleep(0.1)
                         #print(text2)
                         #print("\n")
+                        current_x = int(room_lookup[split_text[1]][0])
+                        current_y = int(room_lookup[split_text[1]][1])
+                        current_z = int(room_lookup[split_text[1]][0])
                         broadcast_data(self.s_sock, text2)
                         get_rss_flag = 1
-                        
+
                         #op_started = 1
 
             else:
@@ -134,7 +137,7 @@ class Text_Input(threading.Thread):
                             pass
                         else:
                             break
-        
+
                     if self.running == 0:
                         break
 
@@ -154,14 +157,14 @@ class Text_Input(threading.Thread):
         self.running = 0
         print(self.running)
         print("killed")
-    
+
 
 #import fingerprint database
 def import_db(station_count):
     global csv_data
     global fp_db
 
-    
+
 
     db = open("dummy_db1.csv", "r")
     db_content = db.read()
@@ -196,9 +199,9 @@ def compute_loc(station_count, measured_rss):
     #global fp_db
 
     K = 5
-    
+
     index_knn = []
-    
+
     D = []
     weight = []
     #x = 0
@@ -214,7 +217,7 @@ def compute_loc(station_count, measured_rss):
         for j in range(0, STATION_COUNT):
             key = "station" + str(j+1)
             num = num + pow((int(fp_db[key][i]) - int(measured_rss[j])), 2)
-        
+
         D.append(math.sqrt(num))
 
     #print("lol1")
@@ -225,7 +228,7 @@ def compute_loc(station_count, measured_rss):
         if D[i] == 0:
             loc = [fp_db['X'][i], fp_db['Y'][i], fp_db['Z'][i]]
             return loc
-    
+
 
     #print(get_rss_flag)
 
@@ -245,15 +248,15 @@ def compute_loc(station_count, measured_rss):
     for i in range(0, K):
         min_D = min(D)
         index = D.index(min_D)
-        
+
         D[index] = 1000000
         index_knn.append(index)
-    
+
     #print("lol3")
 
     #print('\n')
     #print(index_knn)
-    
+
     #getting the location by using the formula for KWNN
     # K nearest neighbors
 
@@ -289,7 +292,7 @@ def compute_loc(station_count, measured_rss):
 
     #print('\n')
     #print(weight)
-    
+
 
     #print('\n')
     loc = ["{0:.2f}".format(x), "{0:.2f}".format(y), "{0:.2f}".format(z)]
@@ -312,8 +315,8 @@ def compute_actual_loc():
 
     #print(fp_loc)
     #print(dr_loc)
-        
-    ###### INSERT CODE FOR ACTUAL LOCATION COMPUTATION - FINGERPRINT + DEAD RECKONING 
+
+    ###### INSERT CODE FOR ACTUAL LOCATION COMPUTATION - FINGERPRINT + DEAD RECKONING
 
     current_x = dr_loc[0]
     current_y = dr_loc[1]
@@ -323,7 +326,7 @@ def compute_actual_loc():
     cycle_on = 0
 
 def path_planning():
-    
+
     global current_x
     global current_y
     global current_z
@@ -332,19 +335,40 @@ def path_planning():
 
     global command
 
-    
-
     ##### INSERT JED'S CODE HERE
+    global messageOut
+    global messageIn
+
+    #posX = 0        # The drone's current y-coordinate position
+    #posY = 0        # The drone's current y-coordinate position
+    #currRot = 1     # The drone's current orientation
+    #flag = 0
+    #print("Initialized!")
+    #while flag == 0:
+    # Use a flag wherein code executes only on flag == 0
+    messageOut = str(current_x) + "," + str(current_y) + "," + str(orientation) + "," + str(80)
+    print("messageOut = " + messageOut)
+    sendSocket.send_string(messageOut)
+    messageIn = sendSocket.recv()
+    #print(messageIn)
+    #print("messageIn = " + messageIn.decode("utf-8"))
+    messageInString = messageIn.decode("utf-8")
+    print("Path planning command: %s" % messageInString)
+    #print(messageInString)
+
+    time.sleep(0.2)       # For delay purposes
 
     # temporary command - always forward
-    command = 1
+    #command = 1
+    command = int(messageInString)
+
 
     return command
-    
-    
+
+
 
 if __name__ == "__main__":
-     
+
     # List to keep track of socket descriptors
     CONNECTION_LIST = []
     USERS = []
@@ -374,7 +398,7 @@ if __name__ == "__main__":
 
     global dr_loc
     global fp_loc
-    
+
     import_db(STATION_COUNT)
 
     #print (csv_data)
@@ -386,7 +410,7 @@ if __name__ == "__main__":
 
     # FLAGS
     get_rss_flag = 0
-    op_started = 0  
+    op_started = 0
     cycle_on = 0
     command_done = 0
     get_dr_flag = 0
@@ -397,7 +421,7 @@ if __name__ == "__main__":
     orientation = 1
 
     #stopper = threading.Event()
-        
+
     #PORT = int (input('Enter port number: '))
     PORT = 50191
 
@@ -406,21 +430,25 @@ if __name__ == "__main__":
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server_socket.bind(('', PORT))
     server_socket.listen(1)
- 
+
     # Add server socket to the list of readable connections
     CONNECTION_LIST.append(server_socket)
-    print ("Chat server started on port " + str(PORT))  
+    print ("Chat server started on port " + str(PORT))
 
+    sendContext = zmq.Context()
+    sendSocket = sendContext.socket(zmq.REQ)
+    sendSocket.connect("tcp://localhost:12345")
+    print("Initialized!")
     #handler = SignalHandler(stopper)
     #signal.signal(signal.SIGINT, handler)
 
-    
+
     thread_start = 0
 
     server_input = Text_Input(server_socket)
     #server_input.start()
 
-    
+
     try:
         while 1:
             # Get the list sockets which are ready to be read through select
@@ -445,40 +473,40 @@ if __name__ == "__main__":
                         server_input.start()
                         thread_start = 1
                         print ("hey")
-    
-                 
+
+
                 #Some incoming message from a client
                 else:
                     addr1 = sock.getpeername()
                     index = NUMBER.index(addr1[1])
-    
+
                     # Data recieved from client, process it
                     try:
-                        
+
                         #In Windows, sometimes when a TCP program closes abruptly,
                         # a "Connection reset by peer" exception will be thrown
                         rcv_data = sock.recv(RECV_BUFFER)
-                        data = rcv_data.decode('ascii')                 
-    
+                        data = rcv_data.decode('ascii')
+
                         if data :
                             username = USERS[index]
                             #out = username + ": " + data
                             #print (data)
 
                             ####  HERE
-                            
+
                             if get_rss_flag == 1:
                                 #print ("hi")
                                 if rss_count < STATION_COUNT:
 
-                                    
+
                                     if " " in data:
                                         print("DATA: " + data)
                                         split_data = data.split(" ")
 
                                         if split_data[0] == "rss":
                                             rss_data[split_data[1]] = split_data[2]
-                                            
+
                                             rss_count += 1
                                             #print ("rss count: %d" % rss_count)
 
@@ -504,7 +532,7 @@ if __name__ == "__main__":
                                                     broadcast_data(server_socket, text)
                                                     print("Text broadcasted")
 
-                                                else:                                                
+                                                else:
                                                     print ("\t\t\t\tSTATUS: Done getting RSSI...")
 
                                                     print ("\t\t\t\tSTATUS: Computing fingerprint location...")
@@ -536,8 +564,8 @@ if __name__ == "__main__":
                                     print ("DR LOC: " + str(dr_loc[0]) + " " + str(dr_loc[1]) + " " + str(dr_loc[2]))
                                     print ("\t\t\t\tSTATUS: Done getting dead reckoning location...")
                                     get_dr_flag = 0
-                                    
-                                    
+
+
                         else :
                             username = USERS[index]
                             broadcast_data(sock, "\r%s is offline\n" % username)
@@ -552,7 +580,7 @@ if __name__ == "__main__":
                             server_input.kill()
                             server_input.join()
                             continue
-                                             
+
                     except:
                         username = USERS[index]
                         broadcast_data(sock, "%s is offline" % username)
@@ -567,10 +595,10 @@ if __name__ == "__main__":
                         server_input.join()
                         #print("Killed")
                         continue
- 
+
     except KeyboardInterrupt:
         #server_input._stop()
-        
+
         server_input.kill()
         #print(server_input.is_alive)
         #server_input.join()

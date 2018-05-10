@@ -497,6 +497,7 @@ if __name__ == "__main__":
 
                             elif data == "get_dr_loc":
                                 reply = "dr_loc " + str(dr_x) + " " + str(dr_y) + " " + str(dr_z) + " " + str(orientation)
+                                print(reply)
                                 s.send(reply.encode('ascii'))
 
                             else:
