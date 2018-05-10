@@ -160,6 +160,7 @@ class commander(threading.Thread):
                                     dr_y -= 0.5
                                 elif (orientation == 3):
                                     dr_x += 0.5
+                                #mc.turn_left(TURN_SIZE)
 
                             elif commands[0] == 4:
                                 mc.right(MOVE_SIZE, velocity=MOVE_SPEED)
@@ -172,12 +173,15 @@ class commander(threading.Thread):
                                     dr_y += 0.5
                                 elif (orientation == 3):
                                     dr_x -= 0.5
+                                #mc.turn_right(TURN_SIZE)
 
 
                             elif commands[0] == 5:
                                 mc.turn_left(TURN_SIZE)
+                                mc.turn_left(TURN_SIZE)
                                 #print ("yaw left")
                             elif commands[0] == 6:
+                                mc.turn_right(TURN_SIZE)
                                 mc.turn_right(TURN_SIZE)
                                 #print ("yaw right")
 
