@@ -1,0 +1,2 @@
+PROJ_OBJ_CF2 += ir.o
+CFLAGS += -DDECK_FORCE=bcIR
