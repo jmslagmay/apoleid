@@ -420,8 +420,6 @@ if __name__ == "__main__":
                                 s.send(reply.encode('ascii'))
 
                             elif parsed_data[0] == "connect":
-                                #print (data)
-                                #print ("lol")
                                 if int(parsed_data[1]) == station_no:
 
                                     commander_thread.start()
@@ -440,7 +438,6 @@ if __name__ == "__main__":
                                     commands.append(int(parsed_data[1]))
 
                                 while commander_busy == 1:
-                                    #print("hmmm")
                                     pass
 
                                 reply = "Command done"
@@ -448,7 +445,6 @@ if __name__ == "__main__":
 
                             else:
                                 print (data)
-                                #print ("omg")
 
                         else:
                             if data == "get_rssi":
@@ -475,9 +471,7 @@ if __name__ == "__main__":
 
                 #user entered a message
                 else :
-                    #msg = sys.stdin.readline()
                     msg = input("")
-                    #print (len(msg))
                     s.send(msg.encode('ascii'))
                     if msg == "/quit\n":
                         print ('Disconnecting from server...')
