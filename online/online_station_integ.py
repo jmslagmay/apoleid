@@ -86,7 +86,7 @@ class commander(threading.Thread):
         # flag if station is connected to drone
         global connected
 
-        commands = []
+        commands = [0]
 
         while self.running == True:
             print("Thread start")
@@ -436,11 +436,13 @@ if __name__ == "__main__":
                                 if connected == 1:
                                     commander_busy = 1
                                     commands.append(int(parsed_data[1]))
+                                    print(commands)
 
                                 while commander_busy == 1:
                                     pass
 
-                                reply = "Command done"
+                                #reply = "Command done"
+                                reply = "Command sent"
                                 s.send(reply.encode('ascii'))
 
                             else:

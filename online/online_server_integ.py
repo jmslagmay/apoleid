@@ -64,9 +64,12 @@ class commanding_thread(threading.Thread):
                         time.sleep(0.1)
                         #print(text2)
                         #print("\n")
-                        current_x = int(room_lookup[split_text[1]][0])
-                        current_y = int(room_lookup[split_text[1]][1])
-                        current_z = int(room_lookup[split_text[1]][0])
+                        current_x = float(room_lookup[split_text[1]][0])
+                        current_y = float(room_lookup[split_text[1]][1])
+                        current_z = float(room_lookup[split_text[1]][0])
+                        print("--------- INITIAL LOCATION ----------")
+                        print("ACTUAL LOC: %f, %f, %f\n" % (current_x, current_y, current_z))
+
                         broadcast_data(self.s_sock, text2)
                         get_rss_flag = 1
 
@@ -78,7 +81,8 @@ class commanding_thread(threading.Thread):
                     cycle_on = 1
                     command = path_planning()
 
-                    print ("\t\t\t\tSTATUS: Executing command %d..." % int(command))
+                    #print ("\t\t\t\tSTATUS: Executing command %d..." % int(command))
+                    print ("\t\t\t\tSTATUS: Sending command %d..." % int(command))
                     text = "command " + str(command)
                     time.sleep(0.1)
                     broadcast_data(self.s_sock, text)
@@ -535,7 +539,7 @@ if __name__ == "__main__":
                                     print("\t\t\t\tSTATUS: " + data)
                                     connected = 1
 
-                                elif data == "Command done":
+                                elif data == "Command sent":
                                     #print(get_rss_flag)
                                     print("\t\t\t\tSTATUS: " + data)
                                     command_done = 1
