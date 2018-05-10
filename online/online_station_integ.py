@@ -217,6 +217,7 @@ class commander(threading.Thread):
                                 mc.circle_right(0.3,velocity = MOVE_SPEED,angle_degrees = 720)
                             time.sleep(0.1)
                             mc.stop()
+                            time.sleep(0.5)
 
                             #print (commands)
                             if commands[0] > 0 and commands[0]<9:
