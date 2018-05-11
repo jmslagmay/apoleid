@@ -7,9 +7,12 @@ from cflib.crazyflie import Crazyflie
 from cflib.crazyflie.log import LogConfig
 
 logging.basicConfig(level=logging.ERROR)
-sum = 0
-#maxBattery = 4.123
-maxBattery = 4.117
+ir_sum = 0
+prev_ir_sum = 0
+battery_sum = 0
+floatzero = float(0)
+status_check_duration = 10
+IR_ALARM_VAL = 1300 #1.3 volts
 
 class LoggingExample:
     """
@@ -44,6 +47,7 @@ class LoggingExample:
         # The definition of the logconfig can be made before connecting
         self._lg_bat = LogConfig(name='Battery stats', period_in_ms=10)
         self._lg_bat.add_variable('pm.vbat', 'float')
+        self._lg_bat.add_variable('forwardRange.forwardRange', 'float')
 
         # Adding the configuration cannot be done until a Crazyflie is
         # connected, since we need to check that the variables we
@@ -63,7 +67,7 @@ class LoggingExample:
             print('Could not add Stabilizer log config, bad configuration.')
 
         # Start a timer to disconnect in 10s
-        t = Timer(5, self._cf.close_link)
+        t = Timer(status_check_duration, self._cf.close_link)
         t.start()
 
     def _stab_log_error(self, logconf, msg):
@@ -73,16 +77,17 @@ class LoggingExample:
     def _stab_log_data(self, timestamp, data, logconf):
         """Callback froma the log API when data arrives"""
         print('[%d][%s]: %s' % (timestamp, logconf.name, data))
-        data = data ['pm.vbat']
-        data = float(data) * float(1000)
-        data = int(data)
-        global sum
-        if (sum == 0 ):
-            sum = data
-        else :
-            sum = (sum + data)/2
+        bat_data = data ['pm.vbat']
+        bat_data = float(bat_data) * float(1000)
+        bat_data = int(bat_data)
 
-        print('%s and sum = %d' % (data,sum))
+        self._battery_voltage(floatvolt = bat_data)
+
+        ir_data = data ['forwardRange.forwardRange']
+        ir_data = float(ir_data) * float(1000)
+        ir_data = int(ir_data)
+
+        obstacle_status = self._ir_check(ir_data = ir_data)
 
 
     def _connection_failed(self, link_uri, msg):
@@ -100,6 +105,57 @@ class LoggingExample:
         """Callback when the Crazyflie is disconnected (called in all cases)"""
         print('Disconnected from %s' % link_uri)
         self.is_connected = False
+
+    def _battery_voltage(self, floatvolt = floatzero):
+        global battery_sum
+        print('nakapasok')
+        if (battery_sum == 0 ):
+            battery_sum = floatvolt
+        else :
+            battery_sum = (battery_sum + floatvolt)/2
+
+        print('%s Battery = %d\n' % (floatvolt,battery_sum))
+
+    def _ir_check(self, ir_data = floatzero):
+        """
+        global ir_sum
+        global prev_ir_sum
+        prev_ir_sum = ir_sum
+
+        print('IR process')
+        if (ir_sum == 0 ):
+            ir_sum = ir_data
+        else :
+            ir_sum = (ir_sum + ir_data)/2
+
+        print('%s and IR = %d' % (ir_data,ir_sum))
+        print('%s - %d\n' % (prev_ir_sum,ir_sum))
+
+
+        if (abs(prev_ir_sum - ir_sum)) >= 1:
+            print("%d  =  IR Difference\n\n" % (abs(prev_ir_sum - ir_sum)))
+        else:
+            print("%d = NO OBSTACLE Detected\n\n" % (abs(prev_ir_sum - ir_sum)))
+        """
+
+        global ir_sum
+
+        print('IR process')
+        if (ir_sum == 0 ):
+            ir_sum = ir_data
+        else :
+            ir_sum = (ir_sum + ir_data)/2
+
+        print('%s and IR = %d' % (ir_data,ir_sum))
+
+
+        if (ir_sum >= IR_ALARM_VAL) or (ir_data >= IR_ALARM_VAL):
+            print("%d:sum| IR |value: %d\n STOP\n STOP\n STOP\n STOP" % (ir_sum,ir_data))
+        else:
+            print("%d:sum| IR |value: %d \nCHILL\n" % (ir_sum,ir_data))
+
+
+
 
 
 if __name__ == '__main__':
