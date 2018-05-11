@@ -1,10 +1,11 @@
 
 """
-Simple example that connects to the crazyflie at `URI` and runs a figure 8
-sequence. This script requires some kind of location system, it has been
-tested with (and designed for) the flow deck.
+Stair Traversal Program
 
-Change the URI variable to your Crazyflie configuration.
+Designed for EEEI stair
+
+Starting point in the center of corridor and stair floor
+
 """
 
 
@@ -28,10 +29,15 @@ Proportion = 1.2 / 1.5	#real output / target output
 MOVE_SIZE =  TARGET_SIZE  / Proportion #more accurate meters per movemet
 
 MOVE_SIZE = 0.5	# comment out to do accurate movement vs predefined intervals
+
+
 TURN_SIZE =  45 #est degs/sec
 RISE_SIZE = 0.05 #m
+TURN_RADIUS = 0.3 #m
 
-MOVE_SPEED = 0.25
+MOVE_SPEED = 0.35
+#0.25, 2 stair movements per charge
+#0.5 should be faster but scary
 
 #vectors
 
@@ -47,7 +53,13 @@ launch_type = 1
 
 commandLookup = ["hovering", "forward", "reverse", "left", "right", "yaw left", "yaw right", "ascending", "descending"]
 
-commands = [0,7,7,7,10,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,10,90,1,1,90,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+# go up stairs
+commands = [0,7,7,7,7,7,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,90,0,1,1,1,1,1,0,90,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,10]
+
+#go down stairs
+#commands = [0,7,7,7,7,7,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,270,0,1,1,1,1,1,0,270,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,10]
+
+
 #0 = stall
 #1 = fw
 #2 = rv
@@ -91,70 +103,70 @@ try:
 								commands.append(0)  #STALL NUMBER
 							else:
 								commands.append(9)  #KILL NUMBER
-						
+
 
 						if commands[0] == 0:
 							mc.stop()
 							time.sleep(1)
 
-							
+
 						elif commands[0] == 1:
 							mc.forward(MOVE_SIZE, velocity=MOVE_SPEED)
 							#print ("fw")
 						elif commands[0] == 2:
 							mc.back(MOVE_SIZE, velocity=MOVE_SPEED)
 							#print ("reverse")
-							
-							
+
+
 						elif commands[0] == 3:
 							mc.left(MOVE_SIZE, velocity=MOVE_SPEED)
 							#print ("left")
 						elif commands[0] == 4:
 							mc.right(MOVE_SIZE, velocity=MOVE_SPEED)
 							#print ("right")
-							
-							
+
+
 						elif commands[0] == 5:
 							mc.turn_left(TURN_SIZE)
 							#print ("yaw left")
 						elif commands[0] == 6:
 							mc.turn_right(TURN_SIZE)
 							#print ("yaw right")
-							
-							
+
+
 						elif commands[0] == 7:
 							if (height + RISE_SIZE) <=HEIGHT_MAX:
-								mc.up(RISE_SIZE) 
+								mc.up(RISE_SIZE)
 								height += RISE_SIZE
 							else:
 								print("Heigh MAX Reached")
 							#print("Ascend")
-							
+
 						elif commands[0] == 8:
 							if (height - RISE_SIZE) >= 0.225:
-								mc.down(RISE_SIZE) 
+								mc.down(RISE_SIZE)
 								height -= RISE_SIZE
 							else:
 								print("Heigh MAX Reached")
 							#print("Descend")
-							
+
 						elif commands[0] == 9:
 							mc.stop()
 							break
-							
+
 						elif commands[0] == 10:
 							#++++++++++++++++++++++++++++++++++++++++++ Landing Drone=
 							print("!!!-Starting Landing Sequence-!!!")
 							mc.land2()
-							
+
 							break
-							
-							
+
+
 						elif commands[0] == 90:
-							mc.circle_right(0.3,velocity = MOVE_SPEED,angle_degrees = 90)
+							mc.circle_right(TURN_RADIUS	,velocity = MOVE_SPEED,angle_degrees = 90)
 
 						elif commands[0] == 270:
-							mc.circle_left(0.3,velocity = MOVE_SPEED,angle_degrees = 90)
+							mc.circle_left(TURN_RADIUS,velocity = MOVE_SPEED,angle_degrees = 90)
 
 
 						time.sleep(0.1)
@@ -164,7 +176,7 @@ try:
 						if commands[0] > 0 and commands[0]<9:
 							appends = 0
 
-						print ("COM: " + str(commandLookup[commands[0]]) + ".\t\t" + str(len(commands) - 2) + " commands left before landing.")
+						#print ("COM: " + str(commandLookup[commands[0]]) + ".\t\t" + str(len(commands) - 2) + " commands left before landing.")
 
 
 
@@ -172,15 +184,15 @@ try:
 				except KeyboardInterrupt:
 					print("---KILLSWITCH ACTIVATED---")
 					print("---EMERGENCY LANDING IMMINENT---")
-					
+
 		#++++++++++++++++++++++++++++++++++++++++++
 
 				print("Sequence Finished")
-					
+
 		#++++++++++++++++++++++++++++++++++++++++++
-				
+
 				print("DONE\nNow closing")
 
-			
+
 finally:
 	print("Finally, we end.")

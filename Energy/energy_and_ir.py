@@ -13,6 +13,8 @@ battery_sum = 0
 floatzero = float(0)
 status_check_duration = 10
 IR_ALARM_VAL = 1300 #1.3 volts
+MAX_BATTERY = 4127
+percentage = 10
 
 class LoggingExample:
     """
@@ -114,8 +116,8 @@ class LoggingExample:
         else :
             battery_sum = (battery_sum + floatvolt)/2
 
-        print('%s Battery = %d\n' % (floatvolt,battery_sum))
-
+        percentage = battery_sum *100 / MAX_BATTERY
+        print('%s Battery = %d\n\n%d %%\n\n' % (floatvolt,battery_sum,percentage))
     def _ir_check(self, ir_data = floatzero):
         """
         global ir_sum
