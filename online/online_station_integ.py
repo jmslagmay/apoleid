@@ -222,6 +222,7 @@ class commander(threading.Thread):
                                 print ("hello")
                                 done = 1
                                 commander_busy = 0
+                                #connected = 0
                                 break
 
                             elif commands[0] == 360:
@@ -253,7 +254,7 @@ class commander(threading.Thread):
 
                     print("DONE\nNow closing")
 
-                if done == 1:
+                if done == 1: # closes this thread
                     self.running = False
 
             print("lalala")
@@ -363,6 +364,8 @@ if __name__ == "__main__":
     # list of commands for the commander
     global commands
 
+    global s
+
     commander_start = 0 # motion commander started, station connected to drone
     done = 0 # whole program is done
     commander_busy = 0 # motion commander is still executing the command
@@ -453,10 +456,10 @@ if __name__ == "__main__":
                                     commands.append(int(parsed_data[1]))
                                     print(commands)
 
-                                while commander_busy == 1:
-                                    pass
+                                    while commander_busy == 1:
+                                        pass
 
-                                reply = "Command done"
+                                    reply = "Command done"
                                 #reply = "Command sent"
                                 s.send(reply.encode('ascii'))
 
@@ -479,9 +482,10 @@ if __name__ == "__main__":
                                 done = 1
 
                             elif data == "get_dr_loc":
-                                reply = "dr_loc " + str(dr_x) + " " + str(dr_y) + " " + str(dr_z) + " " + str(orientation)
-                                print(reply)
-                                s.send(reply.encode('ascii'))
+                                if connected == 1:
+                                    reply = "dr_loc " + str(dr_x) + " " + str(dr_y) + " " + str(dr_z) + " " + str(orientation)
+                                    print(reply)
+                                    s.send(reply.encode('ascii'))
 
                             else:
                                 print (data)

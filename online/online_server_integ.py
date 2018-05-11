@@ -152,6 +152,7 @@ def import_db(station_count):
     global csv_data
     global fp_db
 
+    #db = open("rss_db_427.csv", "r")
     db = open("dummy_db1.csv", "r")
     db_content = db.read()
     db.close()
@@ -185,7 +186,7 @@ def compute_loc(station_count, measured_rss):
 
     #global fp_db
 
-    K = 5
+    #K = 5
 
     index_knn = []
 
