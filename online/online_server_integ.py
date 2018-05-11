@@ -81,8 +81,8 @@ class commanding_thread(threading.Thread):
                     cycle_on = 1
                     command = path_planning()
 
-                    #print ("\t\t\t\tSTATUS: Executing command %d..." % int(command))
-                    print ("\t\t\t\tSTATUS: Sending command %d..." % int(command))
+                    print ("\t\t\t\tSTATUS: Executing command %d..." % int(command))
+                    #print ("\t\t\t\tSTATUS: Sending command %d..." % int(command))
                     text = "command " + str(command)
                     time.sleep(0.1)
                     broadcast_data(self.s_sock, text)
@@ -582,7 +582,7 @@ if __name__ == "__main__":
                                     print("\t\t\t\tSTATUS: " + data)
                                     connected = 1
 
-                                elif data == "Command sent":
+                                elif data == "Command done":
                                     #print(get_rss_flag)
                                     print("\t\t\t\tSTATUS: " + data)
                                     command_done = 1

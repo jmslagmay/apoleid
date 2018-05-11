@@ -130,8 +130,8 @@ class MotionCommander:
                         self._cf.commander.send_hover_setpoint(0, 0, 0, temp_height)
                         time.sleep(0.1)
                     else:
-                        pass 
-                
+                        pass
+
                 self._cf.commander.send_hover_setpoint(0, 0, 0, temp_height)
                 time.sleep(0.1)
 
@@ -164,10 +164,8 @@ class MotionCommander:
         """
         if self._is_flying:
             self.down(self._thread.get_height(), velocity)
-
             self._thread.stop()
             self._thread = None
-
             self._cf.commander.send_stop_setpoint()
             self._is_flying = False
 

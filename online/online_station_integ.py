@@ -29,6 +29,7 @@ TURN_SIZE =  45 #est degs/sec
 RISE_SIZE = 0.05 #m
 
 MOVE_SPEED = 0.25
+MAX_STALL_TIME = 3
 
 #vectors
 
@@ -86,7 +87,7 @@ class commander(threading.Thread):
         # flag if station is connected to drone
         global connected
 
-        commands = [0]
+        commands = []
 
         while self.running == True:
             print("Thread start")
@@ -111,13 +112,23 @@ class commander(threading.Thread):
                     appends = 0;
                     try:
                         while len(commands) >= 0:
-                            if len(commands) == 0:
-                                appends += 1
-                                if appends < APPEND_LIMIT:
-                                    commands.append(0)  #STALL NUMBER
+                            #if len(commands) == 0:
+                                #appends += 1
+                                #if appends < APPEND_LIMIT:
+                                #    commands.append(0)  #STALL NUMBER
+                                #else:
+                                #    commands.append(10)  #KILL NUMBER
+                            start_time = time.time()
+                            while len(commands) == 0:
+                                mc.stop()
+                                time.sleep(1)
+                                elapsed_time = time.time() - start_time
+                                print("Time: %f" % elapsed_time)
+                                if (elapsed_time < MAX_STALL_TIME):
+                                    pass
                                 else:
-                                    commands.append(9)  #KILL NUMBER
-
+                                    commands.append(10)
+                                    break
 
                             if commands[0] == 0:
                                 mc.stop()
@@ -208,19 +219,19 @@ class commander(threading.Thread):
                                 #++++++++++++++++++++++++++++++++++++++++++ Landing Drone=
                                 print("!!!-Starting Landing Sequence-!!!")
                                 mc.land2()
-
+                                print ("hello")
                                 break
-
 
                             elif commands[0] == 360:
                                 mc.circle_left(0.3,velocity = MOVE_SPEED,angle_degrees = 720)
                                 mc.circle_right(0.3,velocity = MOVE_SPEED,angle_degrees = 720)
+
                             time.sleep(0.1)
                             mc.stop()
                             time.sleep(0.5)
 
                             #print (commands)
-                            if commands[0] > 0 and commands[0]<9:
+                            if commands[0] > 0 and commands[0] < 9:
                                 appends = 0
 
                             print ("COM: " + str(commandLookup[commands[0]]) + ".\t\t" + str(len(commands) - 2) + " commands left before landing.")
@@ -441,8 +452,8 @@ if __name__ == "__main__":
                                 while commander_busy == 1:
                                     pass
 
-                                #reply = "Command done"
-                                reply = "Command sent"
+                                reply = "Command done"
+                                #reply = "Command sent"
                                 s.send(reply.encode('ascii'))
 
                             else:
