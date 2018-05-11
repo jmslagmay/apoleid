@@ -121,7 +121,7 @@ class commander(threading.Thread):
                             start_time = time.time()
                             while len(commands) == 0:
                                 mc.stop()
-                                time.sleep(1)
+                                time.sleep(0.1)
                                 elapsed_time = time.time() - start_time
                                 print("Time: %f" % elapsed_time)
                                 if (elapsed_time < MAX_STALL_TIME):
@@ -220,6 +220,8 @@ class commander(threading.Thread):
                                 print("!!!-Starting Landing Sequence-!!!")
                                 mc.land2()
                                 print ("hello")
+                                done = 1
+                                commander_busy = 0
                                 break
 
                             elif commands[0] == 360:
@@ -254,8 +256,10 @@ class commander(threading.Thread):
                 if done == 1:
                     self.running = False
 
-
-
+            print("lalala")
+            scf.close_link()
+            print(scf.is_link_open())
+            print("haha")
             time.sleep(0)
     def kill(self):
         self.running = 0
