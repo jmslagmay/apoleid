@@ -33,7 +33,7 @@ def import_db(station_count):
 
 
 if __name__ == "__main__":
-    
+
     global data
     global fp_db
 
@@ -71,7 +71,7 @@ if __name__ == "__main__":
         measured_rss.append(rss)
 
     #print (measured_rss)
-    
+
     D = []
     weight = []
 
@@ -81,7 +81,7 @@ if __name__ == "__main__":
         for j in range(0, STATION_COUNT):
             key = "station" + str(j+1)
             num = num + pow((int(fp_db[key][i]) - int(measured_rss[j])), 2)
-        
+
         D.append(math.sqrt(num))
 
     #print('\n')
@@ -99,13 +99,13 @@ if __name__ == "__main__":
     for i in range(0, K):
         min_D = min(D)
         index = D.index(min_D)
-        
+
         D[index] = 1000000
         index_knn.append(index)
-    
+
     #print('\n')
     #print(index_knn)
-    
+
     #getting the location by using the formula for KWNN
     # K nearest neighbors
 
@@ -133,4 +133,3 @@ if __name__ == "__main__":
 
     print('\n')
     print("%.2f, %.2f, %.2f" % (x, y, z))
-

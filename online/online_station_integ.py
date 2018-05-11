@@ -86,7 +86,7 @@ class commander(threading.Thread):
         # flag if station is connected to drone
         global connected
 
-        commands = []
+        commands = [0]
 
         while self.running == True:
             print("Thread start")
@@ -217,6 +217,7 @@ class commander(threading.Thread):
                                 mc.circle_right(0.3,velocity = MOVE_SPEED,angle_degrees = 720)
                             time.sleep(0.1)
                             mc.stop()
+                            time.sleep(0.5)
 
                             #print (commands)
                             if commands[0] > 0 and commands[0]<9:
@@ -251,65 +252,44 @@ class commander(threading.Thread):
 
 def get_rssi(sock, station_no):
 
+    #initializing crazyradio
     cradio = crazyradio.Crazyradio()
     cradio.set_data_rate(cradio.DR_2MPS)
     cradio.set_channel(70)
 
+    PACKETS_COUNT = 50 # number if packets to send to check whether a drone is present
+
     count = 0
-    #delay = (float(station_no) - 1) / 10
-    delay = (float(station_no) - 1)
-    #addr = 0xff - station_no - 1
-    #print (delay)
-    #print (addr)
     rss = 0
     total = 0
 
-    #RSS_list = []
-
-    while count < 50:
-        #sleep(delay)
+    while count < PACKETS_COUNT:
         pk = cradio.send_packet([0xff, ])
 
         if pk.ack and len(pk.data) > 2 and \
             pk.data[0] & 0xf3 == 0xf3 and pk.data[1] == 0x01:
-
-            #print("RSSI: -{}dBm".format(pk.data[2]))
-            #print ("RSSI: %d" % pk.data[2])
             count += 1
             rss = pk.data[2]
-            #RSS_list.append(rss)
-            #print("hello")
             total += 1
-
         else:
-            #print("No RSS")
             count += 1
-            #print("hi")
-            #rss = 10000
 
-
-
-    drone = 0
+    drone_present = 0
 
     #check if there is a drone present
     if total > 1:
-        drone = 1
+        drone_present = 1
         #print("Drone detected")
     else:
-        drone = 0
+        drone_present = 0
         #print("No drone")
 
     count = 0
     rss = 0
-    x = 3
+    x = 20 # number of rss readings to average
 
     #get x no. of RSS then average
-    if drone:
-        #for i in range (0, len(RSS_list)):
-        #    rss_sum += RSS_list[i]
-
-        #rss = int(rss_sum / len(RSS_list))
-
+    if drone_present:
         while count < x:
             pk = cradio.send_packet([0xff, ])
 
@@ -321,12 +301,12 @@ def get_rssi(sock, station_no):
 
         rss = rss / x
         rss = int(rss)
-
     else:
         rss = 10000
 
-
+    #closing radio
     cradio.close()
+    #display RSS reading
     print("RSSI: %d" % rss)
     time.sleep(0.2)
     return rss
@@ -338,19 +318,13 @@ def get_rssi_connected():
     log_rssi.add_variable('radio.rssi', 'float')
 
     with SyncLogger(scf, log_rssi) as logger:
-    #    endTime = time.time() + 10
-        #print("Entered SyncLogger")
-        #print(logger)
-        #print("Logger printed")
         for log_entry in logger:
             print ("Logging RSS")
             timestamp = log_entry[0]
             data = log_entry[1]
             logconf_name = log_entry[2]
 
-                    #print('[%d][%s]: %s' % (timestamp, logconf_name, data))
-            print(data["radio.rssi"])
-
+            print("RSSI: %d" % data["radio.rssi"])
             return(data["radio.rssi"])
 
 #main function
@@ -374,12 +348,12 @@ if __name__ == "__main__":
     # list of commands for the commander
     global commands
 
-    commander_start = 0
-    done = 0
-    commander_busy = 0
-    connected = 0
+    commander_start = 0 # motion commander started, station connected to drone
+    done = 0 # whole program is done
+    commander_busy = 0 # motion commander is still executing the command
+    connected = 0 # flag if station is connected to drone
 
-    orientation = 1
+    orientation = 1 # default orientation is +y
 
     commander_thread = commander()
 
@@ -427,19 +401,11 @@ if __name__ == "__main__":
                         commander_thread.join()
                         sys.exit()
                     else :
-                        #sys.stdout.write(data)
-                        #print(data)
-
-                        #print("lol")
-                        #print(data)
-
                         if " " in data:
                             parsed_data = data.split(" ")
 
-                            #print("hey")
-                            #print(parsed_data)
-                            #print("\n")
                             # will only go here after start
+                            # will only go here to look for station to connect to
                             if parsed_data[0] == "get_rssi":
 
                                 dr_x = int(parsed_data[1])
@@ -454,8 +420,6 @@ if __name__ == "__main__":
                                 s.send(reply.encode('ascii'))
 
                             elif parsed_data[0] == "connect":
-                                #print (data)
-                                #print ("lol")
                                 if int(parsed_data[1]) == station_no:
 
                                     commander_thread.start()
@@ -472,17 +436,17 @@ if __name__ == "__main__":
                                 if connected == 1:
                                     commander_busy = 1
                                     commands.append(int(parsed_data[1]))
+                                    print(commands)
 
                                 while commander_busy == 1:
-                                    #print("hmmm")
                                     pass
 
-                                reply = "Command done"
+                                #reply = "Command done"
+                                reply = "Command sent"
                                 s.send(reply.encode('ascii'))
 
                             else:
                                 print (data)
-                                #print ("omg")
 
                         else:
                             if data == "get_rssi":
@@ -509,9 +473,7 @@ if __name__ == "__main__":
 
                 #user entered a message
                 else :
-                    #msg = sys.stdin.readline()
                     msg = input("")
-                    #print (len(msg))
                     s.send(msg.encode('ascii'))
                     if msg == "/quit\n":
                         print ('Disconnecting from server...')
