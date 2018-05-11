@@ -180,6 +180,7 @@ def import_db(station_count):
 
 
 # Location computation from fingerprinting
+# KWNN with Dynamic Subarea Method
 def compute_loc(station_count, measured_rss):
 
     #global fp_db
@@ -190,10 +191,10 @@ def compute_loc(station_count, measured_rss):
 
     D = []
     weight = []
+    radius = 6 #radius of dynamic subarea
     #x = 0
     #y = 0
     #z = 0
-
     #print(len(csv_data))
     #print(len(fp_db))
 
@@ -212,7 +213,7 @@ def compute_loc(station_count, measured_rss):
 
     for i in range(0, len(csv_data) - 1):
         if D[i] == 0:
-            loc = [fp_db['X'][i], fp_db['Y'][i], fp_db['Z'][i]]
+            loc = [float(fp_db['X'][i]), float(fp_db['Y'][i]), float(fp_db['Z'][i])]
             return loc
 
 
@@ -231,12 +232,18 @@ def compute_loc(station_count, measured_rss):
     #print(weight)
 
     #storing index of K nearest neighbors to list index_knn
-    for i in range(0, K):
-        min_D = min(D)
-        index = D.index(min_D)
+    #for i in range(0, K):
+    #    min_D = min(D)
+    #    index = D.index(min_D)
 
-        D[index] = 1000000
-        index_knn.append(index)
+    #    D[index] = 1000000
+    #    index_knn.append(index)
+
+    for i in range (0, len(data) - 1):
+        if D[i] < radius:
+            index_knn.append(i)
+
+    K = len(index_knn)
 
     #print("lol3")
 
@@ -281,7 +288,8 @@ def compute_loc(station_count, measured_rss):
 
 
     #print('\n')
-    loc = ["{0:.2f}".format(x), "{0:.2f}".format(y), "{0:.2f}".format(z)]
+    #loc = ["{0:.2f}".format(x), "{0:.2f}".format(y), "{0:.2f}".format(z)]
+    loc = [x, y, z]
     #print (loc)
     #print("%.2f, %.2f, %.2f" % (x, y, z))
     #loc = [0, 0, 0,]
@@ -298,15 +306,45 @@ def compute_actual_loc():
 
     global dr_loc
     global fp_loc
+    global old_fp_loc
 
     #print(fp_loc)
     #print(dr_loc)
 
     ###### INSERT CODE FOR ACTUAL LOCATION COMPUTATION - FINGERPRINT + DEAD RECKONING
+    delta_x = fp_loc[0] - current_x
+    delta_y = fp_loc[1] - current_y
+    delta_z = fp_loc[2] - current_z
+    d_fp = math.sqrt(pow(delta_x, 2) + pow(delta_y, 2) + pow(delta_z, 2))
 
-    current_x = dr_loc[0]
-    current_y = dr_loc[1]
-    current_z = dr_loc[2]
+    delta_x = dr_loc[0] - current_x
+    delta_y = dr_loc[1] - current_y
+    delta_z = dr_loc[2] - current_z
+    d_dr = math.sqrt(pow(delta_x, 2) + pow(delta_y, 2) + pow(delta_z, 2))
+
+    if d_fp == 0:
+        r = radius
+    elif d_dr == 0:
+        r = 0
+    else:
+        r = (1 / d_fp) / ((1 / d_fp) + (1 / d_dr))
+
+    if (old_fp_loc[0] == fp_loc[0] and old_fp_loc[1] == fp_loc[1] and old_fp_loc[2] == fp_loc[2]):
+        current_x = dr_loc[0]
+        current_y = dr_loc[1]
+        current_z = dr_loc[2]
+
+    else:
+        current_x = ((1 - r) * dr_loc[0]) + (r * fp_loc[0])
+        current_y = ((1 - r) * dr_loc[1]) + (r * fp_loc[1])
+        current_z = ((1 - r) * dr_loc[2]) + (r * fp_loc[2])
+
+    #current_x = dr_loc[0]
+    #current_y = dr_loc[1]
+    #current_z = dr_loc[2]
+    old_fp_loc[0] = fp_loc[0]
+    old_fp_loc[1] = fp_loc[1]
+    old_fp_loc[2] = fp_loc[2]
 
     # Clear cycle flag
     cycle_on = 0
@@ -384,6 +422,11 @@ if __name__ == "__main__":
 
     global dr_loc
     global fp_loc
+    global old_fp_loc
+
+    dr_loc = [0, 0, 0]
+    fp_loc = [0, 0, 0]
+    old_fp_loc = [0, 0, 0]
 
     import_db(STATION_COUNT)
 
