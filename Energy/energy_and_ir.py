@@ -7,13 +7,18 @@ from cflib.crazyflie import Crazyflie
 from cflib.crazyflie.log import LogConfig
 
 logging.basicConfig(level=logging.ERROR)
+floatzero = float(0)
+status_check_duration = 20
+
 ir_sum = 0
 prev_ir_sum = 0
 battery_sum = 0
-floatzero = float(0)
-status_check_duration = 10
+
 IR_ALARM_VAL = 1300 #1.3 volts
 MAX_BATTERY = 4127
+LOW_BATTERY = 3650 # PRACTICAL LOW BATTERY
+#LOW_BATTERY = 3570 #ACTUAL CORRECT VALUE NOT FLYING 2.820 FOR flying
+LOWEST_BATTERY = 2330
 percentage = 10
 
 class LoggingExample:
@@ -116,7 +121,7 @@ class LoggingExample:
         else :
             battery_sum = (battery_sum + floatvolt)/2
 
-        percentage = battery_sum *100 / MAX_BATTERY
+        percentage = ((battery_sum - LOW_BATTERY) *100) / (MAX_BATTERY - LOW_BATTERY)
         print('%s Battery = %d\n\n%d %%\n\n' % (floatvolt,battery_sum,percentage))
     def _ir_check(self, ir_data = floatzero):
         """
