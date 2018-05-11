@@ -1,5 +1,5 @@
 import socket, select, time, sys, threading, signal
- 
+
 #Function to broadcast chat messages to all connected clients
 def broadcast_data (sock, message):
     #Do not send the message to master socket and the client who has send us the message
@@ -14,7 +14,7 @@ def broadcast_data (sock, message):
 
 #class SignalHandler:
 #    stopper = None
-#    
+#
 #    def __init__(self, stopper):
 #        self.stopper = stopper
 #
@@ -69,11 +69,11 @@ class Text_Input(threading.Thread):
             time.sleep(0)
     def kill(self):
         self.running = 0
-    
+
     #def stop(self):
 
 if __name__ == "__main__":
-     
+
     # List to keep track of socket descriptors
     CONNECTION_LIST = []
     USERS = []
@@ -89,14 +89,14 @@ if __name__ == "__main__":
     global x
     global y
     global z
-    
+
 
     rss_data = {}
     get_rss_flag = 0
     rss_count = 0
 
     #stopper = threading.Event()
-        
+
     PORT = int (input('Enter port number: '))
 
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -104,10 +104,10 @@ if __name__ == "__main__":
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server_socket.bind(('', PORT))
     server_socket.listen(1)
- 
+
     # Add server socket to the list of readable connections
     CONNECTION_LIST.append(server_socket)
-    print ("Chat server started on port " + str(PORT))  
+    print ("Chat server started on port " + str(PORT))
 
     #handler = SignalHandler(stopper)
     #signal.signal(signal.SIGINT, handler)
@@ -115,7 +115,7 @@ if __name__ == "__main__":
     server_input = Text_Input(server_socket)
     server_input.start()
 
-    
+
     try:
         while 1:
             # Get the list sockets which are ready to be read through select
@@ -133,28 +133,28 @@ if __name__ == "__main__":
                     NUMBER.append(addr[1])
                     n = n + 1
                     broadcast_data(sockfd, "[%s:%s] entered room" % addr)
-    
-                 
+
+
                 #Some incoming message from a client
                 else:
                     addr1 = sock.getpeername()
                     index = NUMBER.index(addr1[1])
-    
+
                     # Data recieved from client, process it
                     try:
-                        
+
                         #In Windows, sometimes when a TCP program closes abruptly,
                         # a "Connection reset by peer" exception will be thrown
                         rcv_data = sock.recv(RECV_BUFFER)
-                        data = rcv_data.decode('ascii')                 
-    
+                        data = rcv_data.decode('ascii')
+
                         if data :
                             username = USERS[index]
                             out = username + ": " + data
                             print (out)
 
                             ####  HERE
-                            
+
                             if get_rss_flag == 1:
                                 #print ("hi")
                                 if rss_count < STATION_COUNT:
@@ -163,7 +163,7 @@ if __name__ == "__main__":
 
                                         if split_data[0] == "rss":
                                             rss_data[split_data[1]] = split_data[2]
-                                            
+
                                             rss_count += 1
                                             #print ("rss count: %d" % rss_count)
 
@@ -183,14 +183,14 @@ if __name__ == "__main__":
 
                                                 print (to_db)
                                                 to_db = to_db + "\n"
-                                                
+
                                                 #print ("Done")
                                                 #print (x)
                                                 #print (y)
                                                 #print (z)
                                                 print ("Done getting RSSI...")
-                                                
-                                                db = open("rss_db.csv", "a")
+
+                                                db = open("rss_db_511.csv", "a")
                                                 db.write(to_db)
                                                 db.close()
 
@@ -198,7 +198,7 @@ if __name__ == "__main__":
                                                 rss_count = 0
                                                 get_rss_flag = 0
 
-                                    
+
                         else :
                             username = USERS[index]
                             broadcast_data(sock, "\r%s is offline\n" % username)
@@ -211,7 +211,7 @@ if __name__ == "__main__":
                             sock.close()
                             CONNECTION_LIST.remove(sock)
                             continue
-                                             
+
                     except:
                         username = USERS[index]
                         broadcast_data(sock, "%s is offline" % username)
@@ -223,7 +223,7 @@ if __name__ == "__main__":
                         sock.close()
                         CONNECTION_LIST.remove(sock)
                         continue
- 
+
     except KeyboardInterrupt:
         server_input.kill()
         #server_input.join()

@@ -1,7 +1,7 @@
 import socket, select, string, sys
 import cflib.drivers.crazyradio as crazyradio
 from time import sleep
- 
+
 #def get_rssi(sock, cradio, station_no):
 def get_rssi(sock, station_no):
 
@@ -9,7 +9,7 @@ def get_rssi(sock, station_no):
     cradio = crazyradio.Crazyradio()
     cradio.set_data_rate(cradio.DR_2MPS)
     cradio.set_channel(70)
-    
+
     count = 0
     #delay = (float(station_no) - 1) / 10
     #delay = (float(station_no) - 1)
@@ -24,12 +24,12 @@ def get_rssi(sock, station_no):
     #cradio.set_data_rate(cradio.DR_2MPS)
     #cradio.set_channel(70)
 
-    
+
     #RSS_list = []
     sleep(delay)
 
     while count < 100:
-        
+
         pk = cradio.send_packet([0xff, ])
 
         if pk.ack and len(pk.data) > 2 and \
@@ -49,7 +49,7 @@ def get_rssi(sock, station_no):
             #print("hi")
             #rss = 10000
 
-    
+
 
     drone = 0
 
@@ -82,7 +82,7 @@ def get_rssi(sock, station_no):
                 rss += pk.data[2]
 
         rss = rss / x
-        rss = int(rss)        
+        rss = int(rss)
 
     else:
         rss = 10000
@@ -91,41 +91,41 @@ def get_rssi(sock, station_no):
     cradio.close()
     print("RSSI: %d" % rss)
     return rss
-    
 
- 
+
+
 #main function
 if __name__ == "__main__":
-     
+
     if(len(sys.argv) < 3) :
         print ('Usage : python3 filename hostname port')
         sys.exit()
-    
+
     host = sys.argv[1]
     port = int(sys.argv[2])
 
     station_no = int(input("Station No: "))
     #channel = 70 + station_no
 
-    
- 
+
+
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.settimeout(2)
-     
+
     # connect to remote host
     try :
         s.connect((host, port))
     except :
         print ('Unable to connect')
         sys.exit()
-     
+
     print ('Connected to remote host. Start sending messages')
 
     try:
 
         while 1:
-            socket_list = [sys.stdin, s]
- 
+            socket_list = [s]
+
             # Get the list sockets which are readable
             read_sockets, write_sockets, error_sockets = select.select(socket_list , [], [])
 
@@ -161,7 +161,7 @@ if __name__ == "__main__":
                                 s.send(reply.encode('ascii'))
 
                             else:
-                                
+
                                 print (data)
 
                         else:
