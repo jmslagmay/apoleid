@@ -183,8 +183,8 @@ def import_db(station_count):
 # Location computation from fingerprinting
 # KWNN with Dynamic Subarea Method
 def compute_loc(station_count, measured_rss):
-
     global radius
+
     K = 4
 
     #print("1")
@@ -225,33 +225,32 @@ def compute_loc(station_count, measured_rss):
     #print(weight)
 
     #storing index of K nearest neighbors to list index_knn
-    #for i in range(0, K):
-    #    min_D = min(D)
-    #    index = D.index(min_D)
+    for i in range(0, K):
+        min_D = min(D)
+        index = D.index(min_D)
+        D[index] = 1000000
+        index_knn.append(index)
 
-    #    D[index] = 1000000
-    #    index_knn.append(index)
-
-    for i in range (0, len(data) - 1):
-        if D[i] < radius:
-            index_knn.append(i)
+    #for i in range (0, len(data) - 1):
+    #    if D[i] < radius:
+    #        index_knn.append(i)
 
     #print("6")
 
     #checks if able to get certain neighbors using the set radius
-    if len(index_knn) > 0 and len(index_knn) < K:
-        K = len(index_knn)
-    else:
+    #if len(index_knn) > 0 and len(index_knn) < K:
+    #    K = len(index_knn)
+    #else:
         #storing index of K nearest neighbors to list index_knn
-        index_knn.clear()
-        for i in range(0, K):
-            min_D = min(D)
-            index = D.index(min_D)
+    #    index_knn.clear()
+    #    for i in range(0, K):
+    #        min_D = min(D)
+    #        index = D.index(min_D)
 
-            D[index] = 1000000
-            index_knn.append(index)
+    #        D[index] = 1000000
+    #        index_knn.append(index)
 
-    print(index_knn)
+    #print(index_knn)
     #print("7")
     #print("lol3")
 
