@@ -152,8 +152,8 @@ def import_db(station_count):
     global csv_data
     global fp_db
 
-    db = open("rss_db_427.csv", "r")
-    #db = open("dummy_db1.csv", "r")
+    #db = open("rss_db_427.csv", "r")
+    db = open("dummy_db1.csv", "r")
     db_content = db.read()
     db.close()
 
@@ -251,7 +251,8 @@ def compute_loc(station_count, measured_rss):
             D[index] = 1000000
             index_knn.append(index)
 
-    print(index_knn)
+    #print(index_knn)
+    #print("K: %d" % K)
     #print("7")
     #print("lol3")
 
@@ -264,8 +265,9 @@ def compute_loc(station_count, measured_rss):
     denominator = 0
     for i in range (0, K):
         denominator = denominator + (weight[index_knn[i]])
+
     print ("K: %d" % K)
-    print ("denominator: %d" % denominator)
+    print ("denominator: %0.5f" % denominator)
     #print("8")
     #print("lol4")
 
@@ -414,7 +416,7 @@ if __name__ == "__main__":
     n = 0
     index = 0
     RECV_BUFFER = 4096 # Advisable to keep it as an exponent of 2
-    STATION_COUNT = 2
+    STATION_COUNT = 1
 
     global RSS_data
     global csv_data
@@ -581,7 +583,8 @@ if __name__ == "__main__":
                                                     print(measured_rss)
                                                     fp_loc = compute_loc(STATION_COUNT, measured_rss)
                                                     print("heyyyyy")
-                                                    print ("FP LOC: " + str(fp_loc[0]) + " " + str(fp_loc[1]) + " " + str(fp_loc[2]))
+                                                    #print ("FP LOC: " + str(fp_loc[0]) + " " + str(fp_loc[1]) + " " + str(fp_loc[2]))
+                                                    print ("FP LOC: %0.2f %0.2f %0.2f" % (fp_loc[0], fp_loc[0], fp_loc[0]))
                                                     #compute_loc1(STATION_COUNT, measured_rss)
                                                     print ("\t\t\t\tSTATUS: Done fingerprint computing location...")
 
