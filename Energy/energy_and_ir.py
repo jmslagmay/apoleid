@@ -6,6 +6,13 @@ import cflib.crtp  # noqa
 from cflib.crazyflie import Crazyflie
 from cflib.crazyflie.log import LogConfig
 
+# imports already in the integrated code
+
+from cflib.crazyflie.syncCrazyflie import SyncCrazyflie
+from cflib.positioning.motion_commander_edited import MotionCommander
+
+# common imports end here
+
 logging.basicConfig(level=logging.ERROR)
 floatzero = float(0)
 status_check_duration = 20
@@ -20,6 +27,42 @@ LOW_BATTERY = 3650 # PRACTICAL LOW BATTERY
 #LOW_BATTERY = 3570 #ACTUAL CORRECT VALUE NOT FLYING 2.820 FOR flying
 LOWEST_BATTERY = 2330
 percentage = 10
+
+state = 0
+alignment = 0
+
+# Variables already in the integrated code
+
+URI = 'radio://0/70/2M'
+HEIGHT_MIN = 0.125
+HEIGHT_MAX = 0.6
+
+APPEND_LIMIT = 5
+
+TARGET_SIZE = 0.5 #meters per movement
+Proportion = 1.2 / 1.5    #real output / target output
+MOVE_SIZE =  TARGET_SIZE  / Proportion #more accurate meters per movemet
+
+MOVE_SIZE = 0.5    # comment out to do accurate movement vs predefined intervals
+TURN_SIZE =  45 #est degs/sec
+RISE_SIZE = 0.05 #m
+
+MOVE_SPEED = 0.25
+MAX_STALL_TIME = 3
+
+#vectors
+
+height = 0.4
+fw = 0
+left = 0
+angle = 0
+
+will_takeoff = 1
+launch_type = 1
+#1 for original motion commander
+#2 for custom launch version
+
+# Common variables end here
 
 class LoggingExample:
     """
@@ -81,7 +124,8 @@ class LoggingExample:
         """Callback from the log API when an error occurs"""
         print('Error when logging %s: %s' % (logconf.name, msg))
 
-    def _stab_log_data(self, timestamp, data, logconf):
+    # The lines below detail the start of logging for Battery and IR
+	def _stab_log_data(self, timestamp, data, logconf):
         """Callback froma the log API when data arrives"""
         print('[%d][%s]: %s' % (timestamp, logconf.name, data))
         bat_data = data ['pm.vbat']
@@ -95,7 +139,7 @@ class LoggingExample:
         ir_data = int(ir_data)
 
         obstacle_status = self._ir_check(ir_data = ir_data)
-
+	# Getting Log Data ends here
 
     def _connection_failed(self, link_uri, msg):
         """Callback when connection initial connection fails (i.e no Crazyflie
@@ -113,9 +157,64 @@ class LoggingExample:
         print('Disconnected from %s' % link_uri)
         self.is_connected = False
 
-    def _battery_voltage(self, floatvolt = floatzero):
+    # Function that tells CrazyFlie 2.0 behavior
+	# in the event of an obstacle
+	# States described here:
+	"""
+	11 - 10 - 12
+	01 - CF - 02
+	
+	"""
+	def irEvent(state):
+		
+		# Reference: In case we are going to use the
+		# command.insert(0, newCommand)
+		
+		# Start checking
+		# Drone Yaw Left
+		mc.turn_left(TURN_SIZE)
+		mc.turn_left(TURN_SIZE)
+		
+		# If clear, move forward then yaw right (State 01)
+		if (self._ir_check(ir_data = ir_data) == 0):
+			mc.forward(MOVE_SIZE, velocity=MOVE_SPEED)
+			# dr_x -= 0.5     !!! DR value - Uncomment this when merging code to integ.
+			mc.turn_right(TURN_SIZE)
+			mc.turn_right(TURN_SIZE)
+			state = 1
+		# Else, yaw right (State 00)
+			mc.turn_right(TURN_SIZE)
+			mc.turn_right(TURN_SIZE)
+			state = 0
+			
+		# If none of that worked, check right side.
+		if (state == 0):
+			mc.turn_right(TURN_SIZE)
+			mc.turn_right(TURN_SIZE)			
+		
+			# If clear, move forward then yaw left (State 02)
+			if (self._ir_check(ir_data = ir_data) == 0):
+				mc.forward(MOVE_SIZE, velocity=MOVE_SPEED)
+				# dr_x += 0.5     !!! DR value - Uncomment this when merging code to integ.
+				mc.turn_left(TURN_SIZE)
+				mc.turn_left(TURN_SIZE) # Make it face right
+				state = 2
+			# Else, yaw left then land
+				mc.turn_left(TURN_SIZE)
+				mc.turn_left(TURN_SIZE)
+				# gonna force the entire sequence to kill everything
+				# uncomment when integrating with main code
+				# commands.insert(0, 10)
+				state = 0
+			
+		# Keep track of the current grid alignment
+		# if it's displaced from the center of the grid
+		alignment = state
+	
+	# Function that determines Battery Percentage
+	def _battery_voltage(self, floatvolt = floatzero):
         global battery_sum
-        print('nakapasok')
+        #print('DEBUG: Battery Read in progress')
         if (battery_sum == 0 ):
             battery_sum = floatvolt
         else :
@@ -123,7 +222,9 @@ class LoggingExample:
 
         percentage = ((battery_sum - LOW_BATTERY) *100) / (MAX_BATTERY - LOW_BATTERY)
         print('%s Battery = %d\n\n%d %%\n\n' % (floatvolt,battery_sum,percentage))
-    def _ir_check(self, ir_data = floatzero):
+		
+    # Function that determines IR status (Free or Obstructed)
+	def _ir_check(self, ir_data = floatzero):
         """
         global ir_sum
         global prev_ir_sum
@@ -147,7 +248,7 @@ class LoggingExample:
 
         global ir_sum
 
-        print('IR process')
+        #print('DEBUG: IR process')
         if (ir_sum == 0 ):
             ir_sum = ir_data
         else :
@@ -158,9 +259,10 @@ class LoggingExample:
 
         if (ir_sum >= IR_ALARM_VAL) or (ir_data >= IR_ALARM_VAL):
             print("%d:sum| IR |value: %d\n STOP\n STOP\n STOP\n STOP" % (ir_sum,ir_data))
+			return 1
         else:
             print("%d:sum| IR |value: %d \nCHILL\n" % (ir_sum,ir_data))
-
+			return 0
 
 
 
