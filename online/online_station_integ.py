@@ -61,6 +61,7 @@ commandLookup = ["hovering", "forward", "reverse", "left", "right", "yaw left", 
 # Only output errors from the logging framework
 logging.basicConfig(level=logging.ERROR)
 
+
 class commander(threading.Thread):
 
     #stopper = None
@@ -253,13 +254,11 @@ class commander(threading.Thread):
 
                     print("DONE\nNow closing")
 
-                if done == 1: # closes this thread
+                if done == 1: #closes this thread
                     self.running = False
 
-            #print("lalala")
-            scf.close_link()
-            #print(scf.is_link_open())
-            #print("haha")
+
+
             time.sleep(0)
     def kill(self):
         self.running = 0
@@ -332,17 +331,19 @@ def get_rssi_connected():
     log_rssi = LogConfig(name='RSSI', period_in_ms=10)
     log_rssi.add_variable('radio.rssi', 'float')
 
+    print("1 lol")
     with SyncLogger(scf, log_rssi) as logger:
-        print("1 lol")
-        #time.sleep(0.02)
         print (scf)
         print (logger)
         for log_entry in logger:
+            endTime = time.time() + 3
             print ("Logging RSS")
             timestamp = log_entry[0]
             data = log_entry[1]
             logconf_name = log_entry[2]
-
+            #print('[%d][%s]: %s' % (timestamp, logconf_name, data))
+            #if time.time() > endTime:
+            #    break
             print("RSSI: %d" % data["radio.rssi"])
             return(data["radio.rssi"])
     print("2 lol")
@@ -367,8 +368,6 @@ if __name__ == "__main__":
 
     # list of commands for the commander
     global commands
-
-    global s
 
     commander_start = 0 # motion commander started, station connected to drone
     done = 0 # whole program is done
@@ -465,7 +464,7 @@ if __name__ == "__main__":
 
                                     reply = "Command done"
                                 #reply = "Command sent"
-                                s.send(reply.encode('ascii'))
+                                    s.send(reply.encode('ascii'))
 
                             else:
                                 print (data)
