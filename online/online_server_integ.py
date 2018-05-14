@@ -152,7 +152,8 @@ def import_db(station_count):
     global csv_data
     global fp_db
 
-    db = open("dummy_db1.csv", "r")
+    db = open("rss_db_427.csv", "r")
+    #db = open("dummy_db1.csv", "r")
     db_content = db.read()
     db.close()
 
@@ -183,21 +184,16 @@ def import_db(station_count):
 # KWNN with Dynamic Subarea Method
 def compute_loc(station_count, measured_rss):
 
-    #global fp_db
+    K = 4
 
-    K = 5
-
+    print("1")
     index_knn = []
 
     D = []
     weight = []
     radius = 6 #radius of dynamic subarea
-    #x = 0
-    #y = 0
-    #z = 0
-    #print(len(csv_data))
-    #print(len(fp_db))
 
+    print("2")
     #computing euclidean distances and storing them to list D
     for i in range(0, len(csv_data) - 1):
         num = 0
@@ -207,28 +203,24 @@ def compute_loc(station_count, measured_rss):
 
         D.append(math.sqrt(num))
 
-    #print("lol1")
-    #print('\n')
-    #print(D)
+    print("3")
 
+    print(D)
+
+    #checking if there is a point wherein the
+    #euclidean distance is 0
     for i in range(0, len(csv_data) - 1):
         if D[i] == 0:
             loc = [float(fp_db['X'][i]), float(fp_db['Y'][i]), float(fp_db['Z'][i])]
             return loc
-
-
-    #print(get_rss_flag)
+    print("4")
 
     #computing weights from euclidean distances
     #print(range(0,len(csv_data)-1))
     for i in range(0, len(csv_data) - 1):
-        #print("hi")
         num = 1 / D[i]
         weight.append(num)
-
-    #print("lol2")
-
-    #print('\n')
+    print("5")
     #print(weight)
 
     #storing index of K nearest neighbors to list index_knn
@@ -243,8 +235,23 @@ def compute_loc(station_count, measured_rss):
         if D[i] < radius:
             index_knn.append(i)
 
-    K = len(index_knn)
+    print("6")
 
+    #checks if able to get certain neighbors using the set radius
+    if len(index_knn) > 0 and len(index_knn) < K:
+        K = len(index_knn)
+    else:
+        #storing index of K nearest neighbors to list index_knn
+        index_knn.clear()
+        for i in range(0, K):
+            min_D = min(D)
+            index = D.index(min_D)
+
+            D[index] = 1000000
+            index_knn.append(index)
+
+    print(index_knn)
+    print("7")
     #print("lol3")
 
     #print('\n')
@@ -256,31 +263,33 @@ def compute_loc(station_count, measured_rss):
     denominator = 0
     for i in range (0, K):
         denominator = denominator + (weight[index_knn[i]])
-
+    print ("K: %d" % K)
+    print ("denominator: %d" % denominator)
+    print("8")
     #print("lol4")
 
     x = 0
     for i in range(0, K):
         x = x + (float(fp_db['X'][index_knn[i]]) * weight[index_knn[i]])
-
+    print("9")
     x = x / denominator
-
+    print("10")
     #print("lol5")
 
     y = 0
     for i in range(0, K):
         y = y + (float(fp_db['Y'][index_knn[i]]) * weight[index_knn[i]])
-
+    print("11")
     y = y / denominator
-
+    print("9")
     #print("lol6")
 
     z = 0
     for i in range(0, K):
         z = z + (float(fp_db['Z'][index_knn[i]]) * weight[index_knn[i]])
-
+    print("13")
     z = z / denominator
-
+    print("14")
     #print("lol7")
 
     #print('\n')
@@ -290,6 +299,7 @@ def compute_loc(station_count, measured_rss):
     #print('\n')
     #loc = ["{0:.2f}".format(x), "{0:.2f}".format(y), "{0:.2f}".format(z)]
     loc = [x, y, z]
+    print("15")
     #print (loc)
     #print("%.2f, %.2f, %.2f" % (x, y, z))
     #loc = [0, 0, 0,]
@@ -565,7 +575,9 @@ if __name__ == "__main__":
                                                     print ("\t\t\t\tSTATUS: Done getting RSSI...")
 
                                                     print ("\t\t\t\tSTATUS: Computing fingerprint location...")
+                                                    print(measured_rss)
                                                     fp_loc = compute_loc(STATION_COUNT, measured_rss)
+                                                    print("heyyyyy")
                                                     print ("FP LOC: " + str(fp_loc[0]) + " " + str(fp_loc[1]) + " " + str(fp_loc[2]))
                                                     #compute_loc1(STATION_COUNT, measured_rss)
                                                     print ("\t\t\t\tSTATUS: Done fingerprint computing location...")

@@ -29,7 +29,7 @@ TURN_SIZE =  45 #est degs/sec
 RISE_SIZE = 0.05 #m
 
 MOVE_SPEED = 0.25
-MAX_STALL_TIME = 5
+MAX_STALL_TIME = 3
 
 #vectors
 
@@ -43,7 +43,7 @@ launch_type = 1
 #1 for original motion commander
 #2 for custom launch version
 
-commandLookup = ["hovering", "forward", "reverse", "left", "right", "yaw left", "yaw right", "ascending", "descending"]
+commandLookup = ["hovering", "forward", "reverse", "left", "right", "yaw left", "yaw right", "ascending", "descending", "stop", "landing"]
 
 #commands = [0,360,10]
 #0 = stall
@@ -123,7 +123,7 @@ class commander(threading.Thread):
                                 mc.stop()
                                 time.sleep(0.1)
                                 elapsed_time = time.time() - start_time
-                                print("Time: %f" % elapsed_time)
+                                #print("Time: %f" % elapsed_time)
                                 if (elapsed_time < MAX_STALL_TIME):
                                     pass
                                 else:

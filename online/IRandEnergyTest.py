@@ -86,25 +86,26 @@ def ir_and_energy():
 	log_irnbat.add_variable('forwardRange.forwardRange', 'float')
 
 	print("Logging IR and Energy")
-	
+
 	with SyncLogger(scf, log_irnbat) as irnbatlogger:
 		for log_entry in irnbatlogger:
 			#print("May I take")
 			data = log_entry[1]
 			#print(data)
-			"""
+
 			bat_data = data['pm.vbat']
 			bat_data = float(bat_data) * float(1000)
 			bat_data = int(bat_data)
 
 			battery_voltage(floatvolt = bat_data)
-			"""
+
 			ir_data = data['forwardRange.forwardRange']
 			ir_data = float(ir_data) * float(1000)
 			ir_data = int(ir_data)
 
-			if (ir_check(ir_data = ir_data)):
-				break
+			break
+			#if (ir_check(ir_data = ir_data)):
+			#	break
 # Getting Log Data ends here
 
 # Function that tells CrazyFlie 2.0 behavior
@@ -116,15 +117,15 @@ def ir_and_energy():
 
 """
 def irEvent(state):
-	
+
 	# Reference: In case we are going to use the
 	# command.insert(0, newCommand)
-	
+
 	# Start checking
 	# Drone Yaw Left
 	mc.turn_left(TURN_SIZE)
 	mc.turn_left(TURN_SIZE)
-	
+
 	# If clear, move forward then yaw right (State 01)
 	if (ir_check(ir_data = ir_data) == 0):
 		mc.forward(MOVE_SIZE, velocity=MOVE_SPEED)
@@ -136,12 +137,12 @@ def irEvent(state):
 		mc.turn_right(TURN_SIZE)
 		mc.turn_right(TURN_SIZE)
 		state = 0
-		
+
 	# If none of that worked, check right side.
 	if (state == 0):
 		mc.turn_right(TURN_SIZE)
-		mc.turn_right(TURN_SIZE)			
-	
+		mc.turn_right(TURN_SIZE)
+
 		# If clear, move forward then yaw left (State 02)
 		if (ir_check(ir_data = ir_data) == 0):
 			mc.forward(MOVE_SIZE, velocity=MOVE_SPEED)
@@ -156,7 +157,7 @@ def irEvent(state):
 			# uncomment when integrating with main code
 			# commands.insert(0, 10)
 			state = 0
-		
+
 	# Keep track of the current grid alignment
 	# if it's displaced from the center of the grid
 	alignment = state
@@ -172,7 +173,7 @@ def battery_voltage(floatvolt = floatzero):
 
 	percentage = ((battery_sum - LOW_BATTERY) *100) / (MAX_BATTERY - LOW_BATTERY)
 	print('%s Battery = %d\n\n%d %%\n\n' % (floatvolt,battery_sum,percentage))
-	
+
 # Function that determines IR status (Free or Obstructed)
 def ir_check(ir_data = floatzero):
 	global ir_sum
@@ -208,9 +209,9 @@ try:
 		#++++++++++++++++++++++++++++++++++++++++++
 				mc.stop()
 				print("Starting Sequence")
-				
+
 				#ir_and_energy()
-				
+
 		#++++++++++++++++++++++++++++++++++++++++++
 				appends = 0;
 				try:
@@ -278,7 +279,7 @@ try:
 							mc.land2()
 
 							break
-							
+
 						elif commands[0] == 15:
 							print("IR Event")
 							ir_and_energy()
