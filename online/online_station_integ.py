@@ -122,7 +122,7 @@ class commander(threading.Thread):
                                 mc.stop()
                                 time.sleep(0.1)
                                 elapsed_time = time.time() - start_time
-                                print("Time: %f" % elapsed_time)
+                                #print("Time: %f" % elapsed_time)
                                 if (elapsed_time < MAX_STALL_TIME):
                                     pass
                                 else:
@@ -256,10 +256,10 @@ class commander(threading.Thread):
                 if done == 1: # closes this thread
                     self.running = False
 
-            print("lalala")
+            #print("lalala")
             scf.close_link()
-            print(scf.is_link_open())
-            print("haha")
+            #print(scf.is_link_open())
+            #print("haha")
             time.sleep(0)
     def kill(self):
         self.running = 0
@@ -333,6 +333,10 @@ def get_rssi_connected():
     log_rssi.add_variable('radio.rssi', 'float')
 
     with SyncLogger(scf, log_rssi) as logger:
+        print("1 lol")
+        #time.sleep(0.02)
+        print (scf)
+        print (logger)
         for log_entry in logger:
             print ("Logging RSS")
             timestamp = log_entry[0]
@@ -341,6 +345,7 @@ def get_rssi_connected():
 
             print("RSSI: %d" % data["radio.rssi"])
             return(data["radio.rssi"])
+    print("2 lol")
 
 #main function
 if __name__ == "__main__":

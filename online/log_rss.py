@@ -21,15 +21,21 @@ if __name__=="__main__":
         if len(available) == 0:
             print('No Crazyflies found, cannot run example')
         else:
-            lg_rss = LogConfig('RSSI', period_in_ms=10)
-            lg_rss.add_variable('radio.rssi', 'float')
+            #lg_rss = LogConfig('RSSI', period_in_ms=10)
+            #lg_rss.add_variable('radio.rssi', 'float')
+            lg_stab = LogConfig(name='Stabilizer', period_in_ms=10)
+            lg_stab.add_variable('stabilizer.yaw', 'float')
 
             cf = Crazyflie(rw_cache='./cache')
-            with SyncCrazyflie(available[0][0], cf=cf) as scf:
-                with SyncLogger(scf, lg_rss) as logger:
-                    endTime = time.time() + 10
 
+            with SyncCrazyflie(available[0][0], cf=cf) as scf:
+                with SyncLogger(scf, lg_stab) as logger:
+                    print (scf)
+                    print(logger)
+                    endTime = time.time() + 10
+                    print("1")
                     for log_entry in logger:
+                        print("2")
                         timestamp = log_entry[0]
                         data = log_entry[1]
                         logconf_name = log_entry[2]
