@@ -43,7 +43,7 @@ launch_type = 1
 #1 for original motion commander
 #2 for custom launch version
 
-commandLookup = ["hovering", "forward", "reverse", "left", "right", "yaw left", "yaw right", "ascending", "descending"]
+commandLookup = ["hovering", "forward", "reverse", "left", "right", "yaw left", "yaw right", "ascending", "descending", "Program STOP", "Landing"]
 
 #commands = [0,360,10]
 #0 = stall
@@ -60,7 +60,6 @@ commandLookup = ["hovering", "forward", "reverse", "left", "right", "yaw left", 
 
 # Only output errors from the logging framework
 logging.basicConfig(level=logging.ERROR)
-
 
 class commander(threading.Thread):
 
@@ -103,7 +102,7 @@ class commander(threading.Thread):
             #++++++++++++++++++++++++++++++++++++++++++ Launch Drone
             #        print("---RISING!---")
             #++++++++++++++++++++++++++++++++++++++++++ Launch Drone
-                    #mc._is_flying = True # USELESS FOR WITH STATTEMENT
+                    #mc._is_flying = True # USELESS FOR WITH STATEMENT
             #++++++++++++++++++++++++++++++++++++++++++
 
                     mc.stop()
@@ -201,14 +200,14 @@ class commander(threading.Thread):
                                 if (height + RISE_SIZE) <=HEIGHT_MAX:
                                     mc.up(RISE_SIZE)
                                 else:
-                                    print("Heigh MAX Reached")
+                                    print("Height MAX Reached")
                                 #print("Ascend")
 
                             elif commands[0] == 8:
                                 if (height - RISE_SIZE) >= 0.225:
                                     mc.down(RISE_SIZE)
                                 else:
-                                    print("Heigh MAX Reached")
+                                    print("Height MAX Reached")
                                 #print("Descend")
 
                             elif commands[0] == 9:
