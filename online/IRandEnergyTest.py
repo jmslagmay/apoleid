@@ -22,13 +22,14 @@ from cflib.crazyflie.syncLogger import SyncLogger
 floatzero = float(0)
 status_check_duration = 20
 
-ir_sum = 0
-prev_ir_sum = 0
-battery_sum = 0
+ir_avg = 0
+battery_avg = 0
+ir_data = 0
 
 IR_ALARM_VAL = 1300 #1.3 volts
 MAX_BATTERY = 4127
-LOW_BATTERY = 3650 # PRACTICAL LOW BATTERY
+LOW_BATTERY_NOTFLY = 3650 # PRACTICAL LOW BATTERY
+LOW_BATTERY_FLY = 3100 # PRACTICAL LOW BATTERY
 #LOW_BATTERY = 3570 #ACTUAL CORRECT VALUE NOT FLYING 2.820 FOR flying
 LOWEST_BATTERY = 2330
 percentage = 10
@@ -62,9 +63,9 @@ angle = 0
 will_takeoff = 1
 launch_type = 1
 
-commandLookup = ["stabilizing...", "forward", "reverse", "left", "right", "yaw left", "yaw right", "ascending", "descending"]
+#commandLookup = ["stabilizing...", "forward", "reverse", "left", "right", "yaw left", "yaw right", "ascending", "descending"]
 
-commands = [0,15,0,0,10]
+commands = [0,0,1,1,1,1,0,10]
 #0 = stall
 #1 = fw
 #2 = rv
@@ -80,6 +81,7 @@ logging.basicConfig(level=logging.ERROR)
 
 def ir_and_energy():
 	global scf
+	global ir_data
 	# The definition of the logconfig can be made before connecting
 	log_irnbat = LogConfig(name='IR and Battery', period_in_ms=10)
 	log_irnbat.add_variable('pm.vbat', 'float')
@@ -87,12 +89,12 @@ def ir_and_energy():
 
 	print("Logging IR and Energy")
 
+	count = 0
+
 	with SyncLogger(scf, log_irnbat) as irnbatlogger:
 		for log_entry in irnbatlogger:
-			#print("May I take")
 			data = log_entry[1]
 			#print(data)
-
 			bat_data = data['pm.vbat']
 			bat_data = float(bat_data) * float(1000)
 			bat_data = int(bat_data)
@@ -103,9 +105,11 @@ def ir_and_energy():
 			ir_data = float(ir_data) * float(1000)
 			ir_data = int(ir_data)
 
-			break
-			#if (ir_check(ir_data = ir_data)):
-			#	break
+			ir_process(ir_data = ir_data)
+			count = count + 1
+
+			if (count == 5):
+				break
 # Getting Log Data ends here
 
 # Function that tells CrazyFlie 2.0 behavior
@@ -117,41 +121,63 @@ def ir_and_energy():
 
 """
 def irEvent(state):
-
 	# Reference: In case we are going to use the
 	# command.insert(0, newCommand)
+
+	#print("Doing IR Event")
 
 	# Start checking
 	# Drone Yaw Left
 	mc.turn_left(TURN_SIZE)
 	mc.turn_left(TURN_SIZE)
 
+	time.sleep(1)
+
+	ir_and_energy() # Get a reading
+
 	# If clear, move forward then yaw right (State 01)
-	if (ir_check(ir_data = ir_data) == 0):
+	time.sleep(1)
+	if (ir_check(ir_avg, ir_data) == 0):
+		print("Left is clear. Moving forward")
 		mc.forward(MOVE_SIZE, velocity=MOVE_SPEED)
 		# dr_x -= 0.5     !!! DR value - Uncomment this when merging code to integ.
 		mc.turn_right(TURN_SIZE)
+		time.sleep(0.5)
 		mc.turn_right(TURN_SIZE)
 		state = 1
 	# Else, yaw right (State 00)
+	else:
+		print("Left is no good. Checking Right")
 		mc.turn_right(TURN_SIZE)
+		time.sleep(0.5)
 		mc.turn_right(TURN_SIZE)
 		state = 0
 
 	# If none of that worked, check right side.
+	time.sleep(1)
+
 	if (state == 0):
 		mc.turn_right(TURN_SIZE)
+		time.sleep(0.5)
 		mc.turn_right(TURN_SIZE)
 
+		ir_and_energy() # Get a reading
+		time.sleep(1)
+
 		# If clear, move forward then yaw left (State 02)
-		if (ir_check(ir_data = ir_data) == 0):
+		if (ir_check(ir_avg, ir_data) == 0):
+			print("Right is good. Moving forward")
 			mc.forward(MOVE_SIZE, velocity=MOVE_SPEED)
 			# dr_x += 0.5     !!! DR value - Uncomment this when merging code to integ.
 			mc.turn_left(TURN_SIZE)
+			time.sleep(0.5)
 			mc.turn_left(TURN_SIZE) # Make it face right
 			state = 2
 		# Else, yaw left then land
+		else:
+			print("No available paths. Landing now.")
 			mc.turn_left(TURN_SIZE)
+			time.sleep(0.5)
 			mc.turn_left(TURN_SIZE)
 			# gonna force the entire sequence to kill everything
 			# uncomment when integrating with main code
@@ -164,34 +190,36 @@ def irEvent(state):
 
 # Function that determines Battery Percentage
 def battery_voltage(floatvolt = floatzero):
-	global battery_sum
+	global battery_avg
 	#print('DEBUG: Battery Read in progress')
-	if (battery_sum == 0 ):
-		battery_sum = floatvolt
+	if (battery_avg == 0 ):
+		battery_avg = floatvolt
 	else :
-		battery_sum = (battery_sum + floatvolt)/2
+		battery_avg = (battery_avg + floatvolt)/2
 
-	percentage = ((battery_sum - LOW_BATTERY) *100) / (MAX_BATTERY - LOW_BATTERY)
-	print('%s Battery = %d\n\n%d %%\n\n' % (floatvolt,battery_sum,percentage))
+	percentage = ((battery_avg - LOW_BATTERY_FLY) *100) / (MAX_BATTERY - LOW_BATTERY_FLY)
+	print(str(battery_avg) + " " + str(LOW_BATTERY_FLY))
+	print('%s Battery = %d\n\n%d %%\n\n' % (floatvolt,battery_avg,percentage))
 
 # Function that determines IR status (Free or Obstructed)
-def ir_check(ir_data = floatzero):
-	global ir_sum
+def ir_process(ir_data = floatzero):
+	global ir_avg
 
 	#print('DEBUG: IR process')
-	if (ir_sum == 0 ):
-		ir_sum = ir_data
+	if (ir_avg == 0 ):
+		ir_avg = ir_data
 	else :
-		ir_sum = (ir_sum + ir_data)/2
+		ir_avg = (ir_avg + ir_data)/2
 
-	print('%s and IR = %d' % (ir_data,ir_sum))
+	print('%s and IR = %d' % (ir_data,ir_avg))
 
 
-	if (ir_sum >= IR_ALARM_VAL) or (ir_data >= IR_ALARM_VAL):
-		print("%d:sum| IR |value: %d\n STOP\n STOP\n STOP\n STOP" % (ir_sum,ir_data))
+def ir_check(ir_avg, ir_data):
+	if (ir_avg >= IR_ALARM_VAL) or (ir_data >= IR_ALARM_VAL):
+		print("%d:sum| IR |value: %d\n STOP\n STOP\n STOP\n STOP" % (ir_avg,ir_data))
 		return 1
 	else:
-		print("%d:sum| IR |value: %d \nCHILL\n" % (ir_sum,ir_data))
+		print("%d:sum| IR |value: %d \nCHILL\n" % (ir_avg,ir_data))
 		return 0
 
 try:
@@ -216,6 +244,10 @@ try:
 				appends = 0;
 				try:
 					while len(commands) >= 0:
+						ir_and_energy()
+						if (ir_check(ir_avg, ir_data)):
+							irEvent(0)
+
 						if len(commands) == 0:
 							appends += 1
 							if appends < APPEND_LIMIT:
@@ -280,11 +312,6 @@ try:
 
 							break
 
-						elif commands[0] == 15:
-							print("IR Event")
-							ir_and_energy()
-							irEvent(0)
-
 						elif commands[0] == 90:
 							mc.circle_right(TURN_RADIUS	,velocity = MOVE_SPEED,angle_degrees = 90)
 
@@ -299,7 +326,7 @@ try:
 						if commands[0] > 0 and commands[0]<9:
 							appends = 0
 
-						print ("COM: " + str(commandLookup[commands[0]]) + ".\t\t" + str(len(commands) - 2) + " commands left before landing.")
+						#print ("COM: " + str(commandLookup[commands[0]]) + ".\t\t" + str(len(commands) - 2) + " commands left before landing.")
 
 
 
