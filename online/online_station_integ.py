@@ -29,7 +29,7 @@ TURN_SIZE =  45 #est degs/sec
 RISE_SIZE = 0.05 #m
 
 MOVE_SPEED = 0.25
-MAX_STALL_TIME = 3
+MAX_STALL_TIME = 5
 
 #vectors
 
@@ -121,7 +121,7 @@ class commander(threading.Thread):
                             start_time = time.time()
                             while len(commands) == 0:
                                 mc.stop()
-                                time.sleep(1)
+                                time.sleep(0.1)
                                 elapsed_time = time.time() - start_time
                                 print("Time: %f" % elapsed_time)
                                 if (elapsed_time < MAX_STALL_TIME):
@@ -220,6 +220,8 @@ class commander(threading.Thread):
                                 print("!!!-Starting Landing Sequence-!!!")
                                 mc.land2()
                                 print ("hello")
+                                done = 1
+                                commander_busy = 0
                                 break
 
                             elif commands[0] == 360:
@@ -328,15 +330,22 @@ def get_rssi_connected():
     log_rssi = LogConfig(name='RSSI', period_in_ms=10)
     log_rssi.add_variable('radio.rssi', 'float')
 
+    print("1 lol")
     with SyncLogger(scf, log_rssi) as logger:
+        print (scf)
+        print (logger)
         for log_entry in logger:
+            endTime = time.time() + 3
             print ("Logging RSS")
             timestamp = log_entry[0]
             data = log_entry[1]
             logconf_name = log_entry[2]
-
+            #print('[%d][%s]: %s' % (timestamp, logconf_name, data))
+            #if time.time() > endTime:
+            #    break
             print("RSSI: %d" % data["radio.rssi"])
             return(data["radio.rssi"])
+    print("2 lol")
 
 #main function
 if __name__ == "__main__":
