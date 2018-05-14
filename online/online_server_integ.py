@@ -401,7 +401,7 @@ if __name__ == "__main__":
     n = 0
     index = 0
     RECV_BUFFER = 4096 # Advisable to keep it as an exponent of 2
-    STATION_COUNT = 1
+    STATION_COUNT = 2
 
     global RSS_data
     global csv_data

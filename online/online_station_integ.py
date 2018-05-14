@@ -458,12 +458,12 @@ if __name__ == "__main__":
                                     commands.append(int(parsed_data[1]))
                                     print(commands)
 
-                                while commander_busy == 1:
-                                    pass
+                                    while commander_busy == 1:
+                                        pass
 
-                                reply = "Command done"
-                                #reply = "Command sent"
-                                s.send(reply.encode('ascii'))
+                                    reply = "Command done"
+                                    #reply = "Command sent"
+                                    s.send(reply.encode('ascii'))
 
                             else:
                                 print (data)
@@ -484,9 +484,10 @@ if __name__ == "__main__":
                                 done = 1
 
                             elif data == "get_dr_loc":
-                                reply = "dr_loc " + str(dr_x) + " " + str(dr_y) + " " + str(dr_z) + " " + str(orientation)
-                                print(reply)
-                                s.send(reply.encode('ascii'))
+                                if connected:
+                                    reply = "dr_loc " + str(dr_x) + " " + str(dr_y) + " " + str(dr_z) + " " + str(orientation)
+                                    print(reply)
+                                    s.send(reply.encode('ascii'))
 
                             else:
                                 print (data)
