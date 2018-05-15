@@ -126,6 +126,8 @@ def irEvent(state):
 
 	#print("Doing IR Event")
 
+	# global dr_x
+	
 	# Start checking
 	# Drone Yaw Left
 	mc.turn_left(TURN_SIZE)
@@ -246,7 +248,7 @@ try:
 					while len(commands) >= 0:
 						ir_and_energy()
 						if (ir_check(ir_avg, ir_data)):
-							irEvent(0)
+							irEvent(state)
 
 						if len(commands) == 0:
 							appends += 1
