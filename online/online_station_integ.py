@@ -15,6 +15,23 @@ from cflib.crazyflie.log import LogConfig
 from cflib.crazyflie.syncLogger import SyncLogger
 
 URI = 'radio://0/70/2M'
+
+floatzero = float(0)
+status_check_duration = 20
+
+
+
+IR_ALARM_VAL = 1100 #1.3 volts
+MAX_BATTERY = 4127
+LOW_BATTERY_NOTFLY = 3650 # PRACTICAL LOW BATTERY
+LOW_BATTERY_FLY = 3100 # PRACTICAL LOW BATTERY
+#LOW_BATTERY = 3570 #ACTUAL CORRECT VALUE NOT FLYING 2.820 FOR flying
+LOWEST_BATTERY = 2330
+#batt_percentage = 10
+
+
+
+
 HEIGHT_MIN = 0.125
 HEIGHT_MAX = 0.6
 
@@ -43,7 +60,7 @@ launch_type = 1
 #1 for original motion commander
 #2 for custom launch version
 
-commandLookup = ["hovering", "forward", "reverse", "left", "right", "yaw left", "yaw right", "ascending", "descending", "stop", "landing"]
+commandLookup = ["hovering", "forward", "reverse", "left", "right", "yaw left", "yaw right", "ascending", "descending", "stop", "landing", "handoff"]
 
 #commands = [0,360,10]
 #0 = stall
@@ -71,6 +88,7 @@ class commander(threading.Thread):
         self.running = 1
     def run(self):
         global scf
+        global mc
         global commands
         global commander_start
         global done
@@ -90,7 +108,7 @@ class commander(threading.Thread):
         commands = []
 
         while self.running == True:
-            print("Thread start")
+            print("\t\t\t\tSTATUS: Commander thread start")
             # Initialize the low-level drivers (don't list the debug drivers)
             cflib.crtp.init_drivers(enable_debug_driver=False)
             print(launch_type)
@@ -118,6 +136,11 @@ class commander(threading.Thread):
                                 #    commands.append(0)  #STALL NUMBER
                                 #else:
                                 #    commands.append(10)  #KILL NUMBER
+
+                            get_ir()
+                            if (ir_check(ir_avg, ir_data)):
+                                irEvent(state)
+
                             start_time = time.time()
                             while len(commands) == 0:
                                 mc.stop()
@@ -330,10 +353,10 @@ def get_rssi_connected():
     log_rssi = LogConfig(name='RSSI', period_in_ms=10)
     log_rssi.add_variable('radio.rssi', 'float')
 
-    print("1 lol")
+    #print("1 lol")
     with SyncLogger(scf, log_rssi) as logger:
-        print (scf)
-        print (logger)
+        #print (scf)
+        #print (logger)
         for log_entry in logger:
             endTime = time.time() + 3
             print ("Logging RSS")
@@ -343,9 +366,179 @@ def get_rssi_connected():
             #print('[%d][%s]: %s' % (timestamp, logconf_name, data))
             #if time.time() > endTime:
             #    break
-            print("RSSI: %d" % data["radio.rssi"])
+            #print("RSSI: %d" % data["radio.rssi"])
             return(data["radio.rssi"])
-    print("2 lol")
+    #print("2 lol")
+
+# Logs battery voltage
+def get_batt():
+    global scf
+    global get_batt_flag
+	# The definition of the logconfig can be made before connecting
+    log_bat = LogConfig(name='Battery', period_in_ms=10)
+    log_bat.add_variable('pm.vbat', 'float')
+
+	#print("Logging IR and Energy")
+    c = 0
+    print("entered get_batt func")
+    with SyncLogger(scf, log_bat) as batlogger:
+        #print("Synclogger done")
+        for log_entry in batlogger:
+            #print ("Logging batt")
+            data = log_entry[1]
+			#print(data)
+            bat_data = data['pm.vbat']
+            bat_data = float(bat_data) * float(1000)
+            bat_data = int(bat_data)
+
+            battery_voltage(floatvolt = bat_data)
+            c += 1
+            if (c == 5):
+                break
+        get_batt_flag = 0
+
+# Function that determines Battery Percentage
+def battery_voltage(floatvolt = floatzero):
+    global battery_avg
+    global get_batt_flag
+    global batt_percentage
+
+	#print('DEBUG: Battery Read in progress')
+    if (battery_avg == 0 ):
+        battery_avg = floatvolt
+    else:
+        battery_avg = (battery_avg + floatvolt)/2
+
+    batt_percentage = ((battery_avg - LOW_BATTERY_FLY) *100) / (MAX_BATTERY - LOW_BATTERY_FLY)
+    #print(str(battery_avg) + " " + str(LOW_BATTERY_FLY))
+    #print('%s Battery = %d\n\n%d %%' % (floatvolt,battery_avg,batt_percentage))
+
+# Logs IR
+def get_ir():
+    global scf
+    global ir_data
+	# The definition of the logconfig can be made before connecting
+    log_ir = LogConfig(name='IR', period_in_ms=10)
+    log_ir.add_variable('forwardRange.forwardRange', 'float')
+
+    #print("Logging IR")
+    c = 0
+
+    with SyncLogger(scf, log_ir) as irlogger:
+        #print("Synclogger in")
+        #print(irlogger)
+        #print(log_ir)
+        for log_entry in irlogger:
+            #print("IR")
+            data = log_entry[1]
+
+            ir_data = data['forwardRange.forwardRange']
+            ir_data = float(ir_data) * float(1000)
+            ir_data = int(ir_data)
+
+            ir_process(ir_data = ir_data)
+            c = c + 1
+
+            if (c == 5):
+                break
+
+    #print("Bye IR")
+
+# Function that determines IR status (Free or Obstructed)
+def ir_process(ir_data = floatzero):
+	global ir_avg
+
+	#print('DEBUG: IR process')
+	if (ir_avg == 0 ):
+		ir_avg = ir_data
+	else :
+		ir_avg = (ir_avg + ir_data)/2
+
+	#print('%s and IR = %d' % (ir_data,ir_avg))
+
+
+def ir_check(ir_avg, ir_data):
+    if (ir_avg >= IR_ALARM_VAL) or (ir_data >= IR_ALARM_VAL):
+		#print("%d:sum| IR |value: %d\n STOP\n STOP\n STOP\n STOP" % (ir_avg,ir_data))
+        print("%d:sum| IR |value: %d !!!!! STOP !!!!!" % (ir_avg,ir_data))
+        return 1
+    else:
+		#print("%d:sum| IR |value: %d \nCHILL\n" % (ir_avg,ir_data))
+        print("%d:sum| IR |value: %d ~~~ CHILL ~~~\n" % (ir_avg,ir_data))
+        return 0
+
+def irEvent(state):
+	# Reference: In case we are going to use the
+	# command.insert(0, newCommand)
+
+	#print("Doing IR Event")
+    global mc
+    global dr_x
+    global done
+
+	# Start checking
+	# Drone Yaw Left
+    mc.turn_left(TURN_SIZE)
+    mc.turn_left(TURN_SIZE)
+
+    time.sleep(1)
+
+    get_ir() # Get a reading
+
+	# If clear, move forward then yaw right (State 01)
+    time.sleep(1)
+    if (ir_check(ir_avg, ir_data) == 0):
+        print("\t\t\t\tSTATUS: Left is clear. Moving forward")
+        mc.forward(MOVE_SIZE, velocity=MOVE_SPEED)
+        dr_x -= 0.5     #!!! DR value - Uncomment this when merging code to integ.
+        mc.turn_right(TURN_SIZE)
+        time.sleep(1.5)
+        mc.turn_right(TURN_SIZE)
+        state = 1
+	# Else, yaw right (State 00)
+    else:
+        print("\t\t\t\tSTATUS: Left is no good. Checking Right")
+        mc.turn_right(TURN_SIZE)
+        time.sleep(1.5)
+        mc.turn_right(TURN_SIZE)
+        state = 0
+
+	# If none of that worked, check right side.
+    time.sleep(1)
+
+    if (state == 0):
+        mc.turn_right(TURN_SIZE)
+        time.sleep(1.5)
+        mc.turn_right(TURN_SIZE)
+
+        get_ir() # Get a reading
+        time.sleep(1)
+
+		# If clear, move forward then yaw left (State 02)
+        if (ir_check(ir_avg, ir_data) == 0):
+            print("\t\t\t\tSTATUS: Right is good. Moving forward")
+            mc.forward(MOVE_SIZE, velocity=MOVE_SPEED)
+            dr_x += 0.5     #!!! DR value - Uncomment this when merging code to integ.
+            mc.turn_left(TURN_SIZE)
+            time.sleep(1.5)
+            mc.turn_left(TURN_SIZE) # Make it face right
+            state = 2
+		# Else, yaw left then land
+        else:
+            print("\t\t\t\tSTATUS: No available paths. Landing now.")
+            mc.turn_left(TURN_SIZE)
+            time.sleep(1.5)
+            mc.turn_left(TURN_SIZE)
+			# gonna force the entire sequence to kill everything
+			# uncomment when integrating with main code
+            commands.insert(0, 10)
+            state = 0
+            #done = 0
+
+	# Keep track of the current grid alignment
+	# if it's displaced from the center of the grid
+    alignment = state
+
 
 #main function
 if __name__ == "__main__":
@@ -353,6 +546,7 @@ if __name__ == "__main__":
     global commander_start
     global done
     global commander_busy
+    global get_batt_flag
 
     # dead reckoning location
     global dr_x
@@ -368,12 +562,31 @@ if __name__ == "__main__":
     # list of commands for the commander
     global commands
 
+    global battery_avg
+    global batt_percentage
+
+    global ir_avg
+    global ir_data
+
+    global state
+    global alignment
+
     commander_start = 0 # motion commander started, station connected to drone
     done = 0 # whole program is done
     commander_busy = 0 # motion commander is still executing the command
     connected = 0 # flag if station is connected to drone
+    get_batt_flag = 0 # flag when battery level is obti
 
     orientation = 1 # default orientation is +y
+
+    battery_avg = 0
+    batt_percentage = 10
+
+    ir_avg = 0
+    ir_data = 0
+
+    state = 0
+    alignment = 0
 
     commander_thread = commander()
 
@@ -413,7 +626,7 @@ if __name__ == "__main__":
                 if sock == s:
                     rcv_data = sock.recv(4096)
                     data = rcv_data.decode('ascii')
-                    print(data)
+                    print("SERVER COMMAND: " + str(data))
                     if not data :
                         print ('\nDisconnected from chat server 1')
                         commands.append(10)
@@ -470,7 +683,6 @@ if __name__ == "__main__":
 
                         else:
                             if data == "get_rssi":
-
                                 #rss = get_rssi(sock, cradio, station_no)
                                 if connected == 0:
                                     rss = get_rssi(sock, station_no)
@@ -489,8 +701,21 @@ if __name__ == "__main__":
                                     print(reply)
                                     s.send(reply.encode('ascii'))
 
+                            elif data == "get_batt":
+                                print("here")
+                                get_batt_flag = 1
+                                get_batt()
+                                while get_batt_flag == 1:
+                                    pass
+                                print ("get_batt_flag: %d" % get_batt_flag)
+                                reply = "batt " + str(int(batt_percentage))
+                                print (reply)
+                                s.send(reply.encode('ascii'))
+
                             else:
                                 print (data)
+
+                    print("REPLY: " + str(reply))
 
                 #user entered a message
                 else :

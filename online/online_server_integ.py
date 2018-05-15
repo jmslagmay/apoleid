@@ -1,5 +1,7 @@
 import socket, select, time, sys, threading, signal, math, zmq
 
+commandLookup = ["hover", "forward", "reverse", "left", "right", "yaw left", "yaw right", "ascending", "descending", "stop", "landing", "handoff"]
+
 #Function to broadcast chat messages to all connected clients
 def broadcast_data (sock, message):
     #Do not send the message to master socket and the client who has send us the message
@@ -28,6 +30,7 @@ class commanding_thread(threading.Thread):
         global command_done
         global get_dr_flag
         global connected
+        global get_batt_flag
 
         # command received from Unity
         global command
@@ -36,6 +39,8 @@ class commanding_thread(threading.Thread):
         global current_x
         global current_y
         global current_z
+
+        global batt
 
         room_lookup = {'209': [0, -1, 0], '210': [0, -1, 0], '207': [0, 0, 0], '208': [0, 0, 0], '206': [0, 7, 0], '204': [0, 9, 0], '205': [0, 12, 0], '201': [0, 19, 0], '203': [0, 19, 0], '202': [0, 21, 0], '220': [-20, 24, 0], '225': [-46, 24, 0], '226': [-48, 30, 0], '227': [-48, 28, 0], '228': [-48, 21, 0], '229': [-48, 15, 0]}
         #print(room_lookup)
@@ -60,6 +65,7 @@ class commanding_thread(threading.Thread):
                         print ("\t\t\t\tSTATUS: Starting drone operation...")
                         #text = ""
                         text2 = "get_rssi " + str(room_lookup[split_text[1]][0]) + " " + str(room_lookup[split_text[1]][1]) + " " + str(room_lookup[split_text[1]][2])
+
                         #print(text2)
                         time.sleep(0.1)
                         #print(text2)
@@ -79,6 +85,21 @@ class commanding_thread(threading.Thread):
                 print("Connected: %d" % connected)
                 if cycle_on == 0 and connected == 1:
                     cycle_on = 1
+
+                    print("\t\t\t\tSTATUS: Getting battery level...")
+                    text = "get_batt"
+                    time.sleep(0.1)
+                    broadcast_data(self.s_sock, text)
+                    get_batt_flag = 1
+                    while get_batt_flag == 1:
+                        #print("Getting battery level")
+                        if self.running:
+                            pass
+                        else:
+                            break
+                    #print("Battery level obtained")
+                    #print(batt)
+
                     command = path_planning()
 
                     print ("\t\t\t\tSTATUS: Executing command %d..." % int(command))
@@ -132,7 +153,7 @@ class commanding_thread(threading.Thread):
                     #print(cycle_on)
                     print ("\t\t\t\tSTATUS: Computing actual location...")
                     compute_actual_loc()
-                    print ("ACTUAL LOC: " + str(current_x) + " " + str(current_y) + " " + str(current_z))
+                    print ("ACTUAL LOC: %0.3f %0.3f %0.3f" % (current_x, current_y, current_z))
                     print ("\t\t\t\tSTATUS: Done computing actual location...")
 
                     ##### INSERT IR CODE HERE
@@ -206,7 +227,7 @@ def compute_loc(station_count, measured_rss):
 
     #print("3")
 
-    print(D)
+    #print(D)
 
     #checking if there is a point wherein the
     #euclidean distance is 0
@@ -266,8 +287,8 @@ def compute_loc(station_count, measured_rss):
     for i in range (0, K):
         denominator = denominator + (weight[index_knn[i]])
 
-    print ("K: %d" % K)
-    print ("denominator: %0.5f" % denominator)
+    #print ("K: %d" % K)
+    #print ("denominator: %0.5f" % denominator)
     #print("8")
     #print("lol4")
 
@@ -302,7 +323,7 @@ def compute_loc(station_count, measured_rss):
     #print('\n')
     #loc = ["{0:.2f}".format(x), "{0:.2f}".format(y), "{0:.2f}".format(z)]
     loc = [x, y, z]
-    print("15")
+    #print("15")
     #print (loc)
     #print("%.2f, %.2f, %.2f" % (x, y, z))
     #loc = [0, 0, 0,]
@@ -374,6 +395,8 @@ def path_planning():
 
     global command
 
+    global batt
+
     ##### INSERT JED'S CODE HERE
     global messageOut
     global messageIn
@@ -385,14 +408,14 @@ def path_planning():
     #print("Initialized!")
     #while flag == 0:
     # Use a flag wherein code executes only on flag == 0
-    messageOut = str(current_x) + "," + str(current_y) + "," + str(orientation) + "," + str(80)
-    print("messageOut = " + messageOut)
+    messageOut = str(current_x) + "," + str(current_y) + "," + str(orientation) + "," + str(batt)
+    #print("messageOut = " + messageOut)
     sendSocket.send_string(messageOut)
     messageIn = sendSocket.recv()
     #print(messageIn)
     #print("messageIn = " + messageIn.decode("utf-8"))
     messageInString = messageIn.decode("utf-8")
-    print("Path planning command: %s" % messageInString)
+    print("UNITY COMMAND: %s - %s" % (messageInString, commandLookup[int(messageInString)]))
     #print(messageInString)
 
     time.sleep(0.2)       # For delay purposes
@@ -428,6 +451,7 @@ if __name__ == "__main__":
     global command_done
     global get_dr_flag
     global connected
+    global get_batt_flag
 
     global current_x
     global current_y
@@ -438,6 +462,8 @@ if __name__ == "__main__":
     global dr_loc
     global fp_loc
     global old_fp_loc
+
+    global batt
 
     dr_loc = [0, 0, 0]
     fp_loc = [0, 0, 0]
@@ -459,6 +485,7 @@ if __name__ == "__main__":
     command_done = 0
     get_dr_flag = 0
     connected = 0
+    get_batt_flag = 0
 
     # +x = 0, +y = 1, -x = 2, -y = 3
     # initial orientation is always +y
@@ -572,17 +599,17 @@ if __name__ == "__main__":
                                                     station = measured_rss.index(minimum) + 1
                                                     print("\t\t\t\tSTATUS: Connecting to Station %d..." % station)
                                                     text = "connect " + str(station)
-                                                    print("Text")
+                                                    #print("Text")
                                                     broadcast_data(server_socket, text)
-                                                    print("Text broadcasted")
+                                                    #print("Text broadcasted")
 
                                                 else:
                                                     print ("\t\t\t\tSTATUS: Done getting RSSI...")
 
                                                     print ("\t\t\t\tSTATUS: Computing fingerprint location...")
-                                                    print(measured_rss)
+                                                    #print(measured_rss)
                                                     fp_loc = compute_loc(STATION_COUNT, measured_rss)
-                                                    print("heyyyyy")
+                                                    #print("heyyyyy")
                                                     #print ("FP LOC: " + str(fp_loc[0]) + " " + str(fp_loc[1]) + " " + str(fp_loc[2]))
                                                     print ("FP LOC: %0.2f %0.2f %0.2f" % (fp_loc[0], fp_loc[0], fp_loc[0]))
                                                     #compute_loc1(STATION_COUNT, measured_rss)
@@ -611,6 +638,13 @@ if __name__ == "__main__":
                                     print ("DR LOC: " + str(dr_loc[0]) + " " + str(dr_loc[1]) + " " + str(dr_loc[2]))
                                     print ("\t\t\t\tSTATUS: Done getting dead reckoning location...")
                                     get_dr_flag = 0
+
+                                elif split_data[0] == "batt":
+                                    #print(data)
+                                    batt = int(split_data[1])
+                                    print ("BATTERY: %d" % batt)
+                                    print ("\t\t\t\tSTATUS: Done getting battery level...")
+                                    get_batt_flag = 0
 
 
                         else :
