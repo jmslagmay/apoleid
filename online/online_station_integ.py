@@ -610,6 +610,8 @@ if __name__ == "__main__":
     state = 0
     alignment = 0
 
+    commands = []
+
     commander_thread = commander()
 
     if(len(sys.argv) < 3) :
