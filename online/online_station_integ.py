@@ -731,15 +731,16 @@ if __name__ == "__main__":
 
                             elif data == "get_batt":
                                 #print("here")
-                                get_batt_flag = 1
-                                get_batt()
-                                while get_batt_flag == 1:
-                                    pass
-                                #print ("get_batt_flag: %d" % get_batt_flag)
-                                reply = "batt " + str(int(batt_percentage))
-                                print("\t\tSTATION: " + str(reply))
-                                #print (reply)
-                                s.send(reply.encode('ascii'))
+                                if connected:
+                                    get_batt_flag = 1
+                                    get_batt()
+                                    while get_batt_flag == 1:
+                                        pass
+                                    #print ("get_batt_flag: %d" % get_batt_flag)
+                                    reply = "batt " + str(int(batt_percentage))
+                                    print("\t\tSTATION: " + str(reply))
+                                    #print (reply)
+                                    s.send(reply.encode('ascii'))
 
                             else:
                                 print (data)
