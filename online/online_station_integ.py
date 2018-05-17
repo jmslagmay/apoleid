@@ -21,7 +21,7 @@ status_check_duration = 20
 
 
 
-IR_ALARM_VAL = 1100 #1.3 volts
+IR_ALARM_VAL = 1250 #1.3 volts
 MAX_BATTERY = 4127
 LOW_BATTERY_NOTFLY = 3650 # PRACTICAL LOW BATTERY
 LOW_BATTERY_FLY = 3100 # PRACTICAL LOW BATTERY
@@ -60,7 +60,7 @@ launch_type = 1
 #1 for original motion commander
 #2 for custom launch version
 
-commandLookup = ["hovering", "forward", "reverse", "left", "right", "yaw left", "yaw right", "ascending", "descending", "stop", "landing", "handoff"]
+commandLookup = ["Hover", "Forward", "Reverse", "Left", "Right", "Yaw left", "Yaw right", "Ascend", "Descend", "Stop", "Land", "Handoff"]
 
 #commands = [0,360,10]
 #0 = stall
@@ -108,16 +108,17 @@ class commander(threading.Thread):
         commands = []
 
         while self.running == True:
-            print("\t\t\t\tSTATUS: Commander thread start")
+            print("\t\t\t\t\tSTATUS: Commander thread start")
             # Initialize the low-level drivers (don't list the debug drivers)
             cflib.crtp.init_drivers(enable_debug_driver=False)
-            print(launch_type)
-            print(will_takeoff)
+            #print(launch_type)
+            #print(will_takeoff)
 
             with SyncCrazyflie(URI, cf=Crazyflie(rw_cache='./cache')) as scf:
                 commander_start = 1
                 with MotionCommander(scf,default_height= 0.5,will_takeoff = will_takeoff, launch_type=launch_type,minimum_height = HEIGHT_MIN) as mc:
                     cf = mc._cf
+                    #print("loooooool")
             #++++++++++++++++++++++++++++++++++++++++++ Launch Drone
             #        print("---RISING!---")
             #++++++++++++++++++++++++++++++++++++++++++ Launch Drone
@@ -125,7 +126,7 @@ class commander(threading.Thread):
             #++++++++++++++++++++++++++++++++++++++++++
 
                     mc.stop()
-                    print("Starting Sequence")
+                    print("\t\t\t\t\tSTATUS: Starting sequence")
             #++++++++++++++++++++++++++++++++++++++++++
                     appends = 0;
                     try:
@@ -212,10 +213,12 @@ class commander(threading.Thread):
 
                             elif commands[0] == 5:
                                 mc.turn_left(TURN_SIZE)
+                                time.sleep(0.5)
                                 mc.turn_left(TURN_SIZE)
                                 #print ("yaw left")
                             elif commands[0] == 6:
                                 mc.turn_right(TURN_SIZE)
+                                time.sleep(0.5)
                                 mc.turn_right(TURN_SIZE)
                                 #print ("yaw right")
 
@@ -224,14 +227,14 @@ class commander(threading.Thread):
                                 if (height + RISE_SIZE) <=HEIGHT_MAX:
                                     mc.up(RISE_SIZE)
                                 else:
-                                    print("Heigh MAX Reached")
+                                    print("\t\t\t\t\tSTATUS: Height MAX Reached")
                                 #print("Ascend")
 
                             elif commands[0] == 8:
                                 if (height - RISE_SIZE) >= 0.225:
                                     mc.down(RISE_SIZE)
                                 else:
-                                    print("Heigh MAX Reached")
+                                    print("\t\t\t\t\tSTATUS: Height MAX Reached")
                                 #print("Descend")
 
                             elif commands[0] == 9:
@@ -242,9 +245,19 @@ class commander(threading.Thread):
                                 #++++++++++++++++++++++++++++++++++++++++++ Landing Drone=
                                 print("!!!-Starting Landing Sequence-!!!")
                                 mc.land2()
-                                print ("hello")
+                                #print ("hello")
                                 done = 1
                                 commander_busy = 0
+                                break
+
+                            elif commands[0] == 11:
+                                #++++++++++++++++++++++++++++++++++++++++++ Landing Drone=
+                                print("\t\t\t\tSTATUS: Preparing for handoff")
+                                mc.land2()
+                                #print ("hello")
+                                done = 1
+                                commander_busy = 0
+                                connected = 0
                                 break
 
                             elif commands[0] == 360:
@@ -259,8 +272,8 @@ class commander(threading.Thread):
                             if commands[0] > 0 and commands[0] < 9:
                                 appends = 0
 
-                            print ("COM: " + str(commandLookup[commands[0]]) + ".\t\t" + str(len(commands) - 2) + " commands left before landing.")
-
+                            #print ("COM: " + str(commandLookup[commands[0]]) + ".\t\t" + str(len(commands) - 2) + " commands left before landing.")
+                            print("\t\t\t\tSTATUS: %s command" % str(commandLookup[commands[0]]))
 
                             commander_busy = 0
                             commands.pop(0)
@@ -279,11 +292,14 @@ class commander(threading.Thread):
                 if done == 1:
                     self.running = False
 
-
-
             time.sleep(0)
+        print("Exited while loop")
+
     def kill(self):
         self.running = 0
+        print("killed")
+        thread_list = threading.enumerate()
+        print(thread_list)
         #mc.land2()
 
 def get_rssi(sock, station_no):
@@ -359,7 +375,7 @@ def get_rssi_connected():
         #print (logger)
         for log_entry in logger:
             endTime = time.time() + 3
-            print ("Logging RSS")
+            #print ("Logging RSS")
             timestamp = log_entry[0]
             data = log_entry[1]
             logconf_name = log_entry[2]
@@ -380,7 +396,7 @@ def get_batt():
 
 	#print("Logging IR and Energy")
     c = 0
-    print("entered get_batt func")
+    #print("entered get_batt func")
     with SyncLogger(scf, log_bat) as batlogger:
         #print("Synclogger done")
         for log_entry in batlogger:
@@ -460,11 +476,17 @@ def ir_process(ir_data = floatzero):
 def ir_check(ir_avg, ir_data):
     if (ir_avg >= IR_ALARM_VAL) or (ir_data >= IR_ALARM_VAL):
 		#print("%d:sum| IR |value: %d\n STOP\n STOP\n STOP\n STOP" % (ir_avg,ir_data))
-        print("%d:sum| IR |value: %d !!!!! STOP !!!!!" % (ir_avg,ir_data))
+        #print("%d:sum| IR |value: %d !!!!! STOP !!!!!" % (ir_avg,ir_data))
+        print("IR SUM: %d" % ir_avg)
+        print("IR VALUE: %d" % ir_data)
+        print("\t\t\t\t\tSTATUS: Obstacle detected")
         return 1
     else:
 		#print("%d:sum| IR |value: %d \nCHILL\n" % (ir_avg,ir_data))
-        print("%d:sum| IR |value: %d ~~~ CHILL ~~~\n" % (ir_avg,ir_data))
+        #print("%d:sum| IR |value: %d ~~~ CHILL ~~~\n" % (ir_avg,ir_data))
+        print("IR SUM: %d" % ir_avg)
+        print("IR VALUE: %d" % ir_data)
+        print("\t\t\t\t")
         return 0
 
 def irEvent(state):
@@ -488,7 +510,7 @@ def irEvent(state):
 	# If clear, move forward then yaw right (State 01)
     time.sleep(1)
     if (ir_check(ir_avg, ir_data) == 0):
-        print("\t\t\t\tSTATUS: Left is clear. Moving forward")
+        print("\t\t\t\t\tSTATUS: Left is clear. Moving forward")
         mc.forward(MOVE_SIZE, velocity=MOVE_SPEED)
         dr_x -= 0.5     #!!! DR value - Uncomment this when merging code to integ.
         mc.turn_right(TURN_SIZE)
@@ -497,7 +519,7 @@ def irEvent(state):
         state = 1
 	# Else, yaw right (State 00)
     else:
-        print("\t\t\t\tSTATUS: Left is no good. Checking Right")
+        print("\t\t\t\t\tSTATUS: Left is no good. Checking Right")
         mc.turn_right(TURN_SIZE)
         time.sleep(1.5)
         mc.turn_right(TURN_SIZE)
@@ -516,7 +538,7 @@ def irEvent(state):
 
 		# If clear, move forward then yaw left (State 02)
         if (ir_check(ir_avg, ir_data) == 0):
-            print("\t\t\t\tSTATUS: Right is good. Moving forward")
+            print("\t\t\t\t\tSTATUS: Right is good. Moving forward")
             mc.forward(MOVE_SIZE, velocity=MOVE_SPEED)
             dr_x += 0.5     #!!! DR value - Uncomment this when merging code to integ.
             mc.turn_left(TURN_SIZE)
@@ -525,7 +547,7 @@ def irEvent(state):
             state = 2
 		# Else, yaw left then land
         else:
-            print("\t\t\t\tSTATUS: No available paths. Landing now.")
+            print("\t\t\t\t\tSTATUS: No available paths. Landing now.")
             mc.turn_left(TURN_SIZE)
             time.sleep(1.5)
             mc.turn_left(TURN_SIZE)
@@ -626,7 +648,7 @@ if __name__ == "__main__":
                 if sock == s:
                     rcv_data = sock.recv(4096)
                     data = rcv_data.decode('ascii')
-                    print("SERVER COMMAND: " + str(data))
+                    print("\t\tSERVER: " + str(data))
                     if not data :
                         print ('\nDisconnected from chat server 1')
                         commands.append(10)
@@ -660,16 +682,15 @@ if __name__ == "__main__":
                                     while commander_start != 1:
                                         #print("Starting...")
                                         pass
-
-                                    connected = 1
                                     reply = "Connected to Station " + str(station_no)
                                     s.send(reply.encode('ascii'))
+                                    connected = 1
 
                             elif parsed_data[0] == "command":
                                 if connected == 1:
                                     commander_busy = 1
                                     commands.append(int(parsed_data[1]))
-                                    print(commands)
+                                    #print(commands)
 
                                     while commander_busy == 1:
                                         pass
@@ -679,7 +700,7 @@ if __name__ == "__main__":
                                     s.send(reply.encode('ascii'))
 
                             else:
-                                print (data)
+                                print ("CHAT: " + data)
 
                         else:
                             if data == "get_rssi":
@@ -698,24 +719,24 @@ if __name__ == "__main__":
                             elif data == "get_dr_loc":
                                 if connected:
                                     reply = "dr_loc " + str(dr_x) + " " + str(dr_y) + " " + str(dr_z) + " " + str(orientation)
-                                    print(reply)
+                                    #print(reply)
                                     s.send(reply.encode('ascii'))
 
                             elif data == "get_batt":
-                                print("here")
+                                #print("here")
                                 get_batt_flag = 1
                                 get_batt()
                                 while get_batt_flag == 1:
                                     pass
-                                print ("get_batt_flag: %d" % get_batt_flag)
+                                #print ("get_batt_flag: %d" % get_batt_flag)
                                 reply = "batt " + str(int(batt_percentage))
-                                print (reply)
+                                #print (reply)
                                 s.send(reply.encode('ascii'))
 
                             else:
                                 print (data)
 
-                    print("REPLY: " + str(reply))
+                    print("\t\tSTATION: " + str(reply))
 
                 #user entered a message
                 else :

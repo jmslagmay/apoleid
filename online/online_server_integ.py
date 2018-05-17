@@ -494,7 +494,7 @@ if __name__ == "__main__":
     #stopper = threading.Event()
 
     #PORT = int (input('Enter port number: '))
-    PORT = 50191
+    PORT = 50190
 
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     # this has no effect, why ?
@@ -572,7 +572,7 @@ if __name__ == "__main__":
 
 
                                     if " " in data:
-                                        print("DATA: " + data)
+                                        #print("DATA: " + data)
                                         split_data = data.split(" ")
 
                                         if split_data[0] == "rss":
@@ -580,6 +580,8 @@ if __name__ == "__main__":
 
                                             rss_count += 1
                                             #print ("rss count: %d" % rss_count)
+                                            print("S%d RSSI: %d" % (int(split_data[1]), int(split_data[2])))
+
 
                                             if rss_count == STATION_COUNT:
 
@@ -681,8 +683,6 @@ if __name__ == "__main__":
         #server_input._stop()
 
         server_input.kill()
-        #print(server_input.is_alive)
-        #server_input.join()
         server_input.join()
         server_socket.close()
 
