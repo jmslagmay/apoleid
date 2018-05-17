@@ -295,7 +295,7 @@ class commander(threading.Thread):
 
             time.sleep(0)
         print("Exited while loop")
-
+        sys.exit()
     def kill(self):
         self.running = 0
         print("killed")
@@ -310,7 +310,7 @@ def get_rssi(sock, station_no):
     cradio.set_data_rate(cradio.DR_2MPS)
     cradio.set_channel(70)
 
-    PACKETS_COUNT = 50 # number if packets to send to check whether a drone is present
+    PACKETS_COUNT = 25 # number if packets to send to check whether a drone is present
 
     count = 0
     rss = 0
