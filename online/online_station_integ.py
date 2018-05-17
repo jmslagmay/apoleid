@@ -46,7 +46,7 @@ TURN_SIZE =  45 #est degs/sec
 RISE_SIZE = 0.05 #m
 
 MOVE_SPEED = 0.25
-MAX_STALL_TIME = 3
+MAX_STALL_TIME = 5
 
 #vectors
 
