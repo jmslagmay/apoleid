@@ -151,6 +151,7 @@ class commander(threading.Thread):
                                 if (elapsed_time < MAX_STALL_TIME):
                                     pass
                                 else:
+                                    print("Exceeded elapsed time")
                                     commands.append(10)
                                     break
 
@@ -323,13 +324,14 @@ def get_rssi(sock, station_no):
             count += 1
             rss = pk.data[2]
             total += 1
+            break
         else:
             count += 1
 
     drone_present = 0
 
     #check if there is a drone present
-    if total > 1:
+    if total >= 1:
         drone_present = 1
         #print("Drone detected")
     else:
