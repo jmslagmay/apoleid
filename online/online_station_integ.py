@@ -672,7 +672,9 @@ if __name__ == "__main__":
                                 rss = get_rssi(sock, station_no)
 
                                 reply = "rss " + str(station_no) + " " + str(rss)
+                                print("\t\tSTATION: " + str(reply))
                                 s.send(reply.encode('ascii'))
+
 
                             elif parsed_data[0] == "connect":
                                 if int(parsed_data[1]) == station_no:
@@ -683,7 +685,9 @@ if __name__ == "__main__":
                                         #print("Starting...")
                                         pass
                                     reply = "Connected to Station " + str(station_no)
+                                    print("\t\tSTATION: " + str(reply))
                                     s.send(reply.encode('ascii'))
+
                                     connected = 1
 
                             elif parsed_data[0] == "command":
@@ -696,6 +700,7 @@ if __name__ == "__main__":
                                         pass
 
                                     reply = "Command done"
+                                    print("\t\tSTATION: " + str(reply))
                                     #reply = "Command sent"
                                     s.send(reply.encode('ascii'))
 
@@ -711,6 +716,7 @@ if __name__ == "__main__":
                                     rss = int(get_rssi_connected())
 
                                 reply = "rss " + str(station_no) + " " + str(rss)
+                                print("\t\tSTATION: " + str(reply))
                                 s.send(reply.encode('ascii'))
 
                             elif data == "done":
@@ -719,6 +725,7 @@ if __name__ == "__main__":
                             elif data == "get_dr_loc":
                                 if connected:
                                     reply = "dr_loc " + str(dr_x) + " " + str(dr_y) + " " + str(dr_z) + " " + str(orientation)
+                                    print("\t\tSTATION: " + str(reply))
                                     #print(reply)
                                     s.send(reply.encode('ascii'))
 
@@ -730,13 +737,14 @@ if __name__ == "__main__":
                                     pass
                                 #print ("get_batt_flag: %d" % get_batt_flag)
                                 reply = "batt " + str(int(batt_percentage))
+                                print("\t\tSTATION: " + str(reply))
                                 #print (reply)
                                 s.send(reply.encode('ascii'))
 
                             else:
                                 print (data)
 
-                    print("\t\tSTATION: " + str(reply))
+
 
                 #user entered a message
                 else :
