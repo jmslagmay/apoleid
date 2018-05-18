@@ -31,6 +31,7 @@ class commanding_thread(threading.Thread):
         global get_dr_flag
         global connected
         global get_batt_flag
+        #global connecting_flag
 
         # command received from Unity
         global command
@@ -116,6 +117,22 @@ class commanding_thread(threading.Thread):
 
                     if self.running == 0:
                         break
+
+                    if command == 11:
+                        # INSERT CODE FOR CONNECT TO STATION HERE AFTER HANDOFF
+                        connected = 0
+                        print("\t\t\t\tSTATUS: Starting handoff")
+                        #temporarily, connect to state 1
+                        text = "connect 1"
+                        broadcast_data(self.s_sock, text)
+                        #connecting_flag = 1
+                        #while connecting_flag == 1:
+                        while connected == 0:
+                            if self.running:
+                                pass
+                            else:
+                                break
+                        print("\t\t\t\tSTATUS: Handoff done")
 
                     #print("hey " + str(command_done) + " " + str(get_rss_flag))
                     command_done = 0
@@ -273,7 +290,7 @@ def compute_loc(station_count, measured_rss):
             D[index] = 1000000
             index_knn.append(index)
 
-    print(K)
+    #print(K)
     #print(index_knn)
     #print("K: %d" % K)
     #print("7")
@@ -329,7 +346,7 @@ def compute_loc(station_count, measured_rss):
     #print (loc)
     #print("%.2f, %.2f, %.2f" % (x, y, z))
     #loc = [0, 0, 0,]
-    print (loc)
+    #print (loc)
     return loc
 
 # Actual location computation
@@ -468,6 +485,8 @@ if __name__ == "__main__":
 
     global batt
 
+    #global connecting_flag
+
     dr_loc = [0, 0, 0]
     fp_loc = [0, 0, 0]
     old_fp_loc = [0, 0, 0]
@@ -489,6 +508,7 @@ if __name__ == "__main__":
     get_dr_flag = 0
     connected = 0
     get_batt_flag = 0
+
 
     # +x = 0, +y = 1, -x = 2, -y = 3
     # initial orientation is always +y
@@ -527,7 +547,7 @@ if __name__ == "__main__":
         while 1:
             # Get the list sockets which are ready to be read through select
             #print("While 1")
-            read_sockets,write_sockets,error_sockets = select.select(CONNECTION_LIST,[],[])
+            read_sockets,write_sockets,error_sockets = select.select(CONNECTION_LIST,[],[],0)
             #print("while in main")
             for sock in read_sockets:
                 #New connection
@@ -616,10 +636,10 @@ if __name__ == "__main__":
                                                     print ("\t\t\t\tSTATUS: Computing fingerprint location...")
                                                     #print(measured_rss)
                                                     fp_loc = compute_loc(STATION_COUNT, measured_rss)
-                                                    print(fp_loc)
+                                                    #print(fp_loc)
                                                     #print("heyyyyy")
                                                     #print ("FP LOC: " + str(fp_loc[0]) + " " + str(fp_loc[1]) + " " + str(fp_loc[2]))
-                                                    print ("FP LOC: %0.2f %0.2f %0.2f" % (float(fp_loc[0]), float(fp_loc[0]), float(fp_loc[0])))
+                                                    print ("FP LOC: %0.3f %0.3f %0.3f" % (float(fp_loc[0]), float(fp_loc[1]), float(fp_loc[2])))
                                                     #compute_loc1(STATION_COUNT, measured_rss)
                                                     print ("\t\t\t\tSTATUS: Done fingerprint computing location...")
 
@@ -634,6 +654,7 @@ if __name__ == "__main__":
                                     #print("llalalalalala")
                                     print("\t\t\t\tSTATUS: " + data)
                                     connected = 1
+                                    #connecting_flag = 0
 
                                 elif data == "Command done":
                                     #print(get_rss_flag)

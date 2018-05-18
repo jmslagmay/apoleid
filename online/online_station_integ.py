@@ -596,6 +596,7 @@ if __name__ == "__main__":
     global state
     global alignment
 
+
     commander_start = 0 # motion commander started, station connected to drone
     done = 0 # whole program is done
     commander_busy = 0 # motion commander is still executing the command
@@ -646,7 +647,7 @@ if __name__ == "__main__":
             socket_list = [s]
 
             # Get the list sockets which are readable
-            read_sockets, write_sockets, error_sockets = select.select(socket_list , [], [])
+            read_sockets, write_sockets, error_sockets = select.select(socket_list , [], [],0)
 
             for sock in read_sockets:
                 #incoming message from remote server
