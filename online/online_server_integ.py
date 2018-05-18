@@ -88,7 +88,7 @@ class commanding_thread(threading.Thread):
 
                     print("\t\t\t\tSTATUS: Getting battery level...")
                     text = "get_batt"
-                    time.sleep(0.1)
+                    #time.sleep(0.1)
                     broadcast_data(self.s_sock, text)
                     get_batt_flag = 1
                     while get_batt_flag == 1:
@@ -105,7 +105,7 @@ class commanding_thread(threading.Thread):
                     print ("\t\t\t\tSTATUS: Executing command %d..." % int(command))
                     #print ("\t\t\t\tSTATUS: Sending command %d..." % int(command))
                     text = "command " + str(command)
-                    time.sleep(0.1)
+                    #time.sleep(0.1)
                     broadcast_data(self.s_sock, text)
                     while command_done == 0:
                         #pass
@@ -122,7 +122,7 @@ class commanding_thread(threading.Thread):
                     #time.sleep(0.2)
                     print ("\t\t\t\tSTATUS: Getting RSSI...")
                     text = "get_rssi"
-                    time.sleep(0.1)
+                    #time.sleep(0.1)
                     broadcast_data(self.s_sock, text)
                     get_rss_flag = 1
                     while get_rss_flag == 1:
@@ -137,7 +137,7 @@ class commanding_thread(threading.Thread):
 
                     print ("\t\t\t\tSTATUS: Getting DR location...")
                     text = "get_dr_loc"
-                    time.sleep(0.1)
+                    #time.sleep(0.1)
                     broadcast_data(self.s_sock, text)
                     get_dr_flag = 1
                     while get_dr_flag == 1:
@@ -162,6 +162,7 @@ class commanding_thread(threading.Thread):
             time.sleep(0.2)
 
         print("Thread exited while loop")
+        sys.exit()
     def kill(self):
         self.running = 0
         print(self.running)
@@ -227,7 +228,7 @@ def compute_loc(station_count, measured_rss):
 
     #print("3")
 
-    #print(D)
+    print(D)
 
     #checking if there is a point wherein the
     #euclidean distance is 0
@@ -272,6 +273,7 @@ def compute_loc(station_count, measured_rss):
             D[index] = 1000000
             index_knn.append(index)
 
+    print(K)
     #print(index_knn)
     #print("K: %d" % K)
     #print("7")
@@ -327,6 +329,7 @@ def compute_loc(station_count, measured_rss):
     #print (loc)
     #print("%.2f, %.2f, %.2f" % (x, y, z))
     #loc = [0, 0, 0,]
+    print (loc)
     return loc
 
 # Actual location computation
@@ -494,7 +497,7 @@ if __name__ == "__main__":
     #stopper = threading.Event()
 
     #PORT = int (input('Enter port number: '))
-    PORT = 50190
+    PORT = 50191
 
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     # this has no effect, why ?
@@ -592,12 +595,14 @@ if __name__ == "__main__":
                                                 for i in range (1, STATION_COUNT + 1):
 
                                                     #measured_rss = measured_rss + rss_data[str(i)]
-                                                    measured_rss.append(rss_data[str(i)])
+                                                    measured_rss.append(int(rss_data[str(i)]))
 
                                                 if op_started == 0:
                                                     op_started = 1
                                                     print ("\t\t\t\tSTATUS: Finding a station...")
                                                     minimum = min(measured_rss)
+                                                    print(measured_rss)
+                                                    print(minimum)
                                                     station = measured_rss.index(minimum) + 1
                                                     print("\t\t\t\tSTATUS: Connecting to Station %d..." % station)
                                                     text = "connect " + str(station)
@@ -611,9 +616,10 @@ if __name__ == "__main__":
                                                     print ("\t\t\t\tSTATUS: Computing fingerprint location...")
                                                     #print(measured_rss)
                                                     fp_loc = compute_loc(STATION_COUNT, measured_rss)
+                                                    print(fp_loc)
                                                     #print("heyyyyy")
                                                     #print ("FP LOC: " + str(fp_loc[0]) + " " + str(fp_loc[1]) + " " + str(fp_loc[2]))
-                                                    print ("FP LOC: %0.2f %0.2f %0.2f" % (fp_loc[0], fp_loc[0], fp_loc[0]))
+                                                    print ("FP LOC: %0.2f %0.2f %0.2f" % (float(fp_loc[0]), float(fp_loc[0]), float(fp_loc[0])))
                                                     #compute_loc1(STATION_COUNT, measured_rss)
                                                     print ("\t\t\t\tSTATUS: Done fingerprint computing location...")
 

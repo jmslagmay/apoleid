@@ -1,0 +1,12 @@
+Chat server started on port 50190
+Initialized!
+Client (127.0.0.1, 64809) connected
+1
+Chat server started on port 50190
+Initialized!
+Client (127.0.0.1, 64821) connected
+1
+Chat server started on port 50190
+Initialized!
+Client (127.0.0.1, 64870) connected
+1

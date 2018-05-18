@@ -78,7 +78,7 @@ class MotionCommander:
 
         self.default_height = default_height
         self.minimum_height = minimum_height
-        print(minimum_height)
+        #print(minimum_height)
 
         self._is_flying = False
         self._thread = None
@@ -114,9 +114,9 @@ class MotionCommander:
         #self.up(height, velocity)
 
         if WILL_TAKEOFF == 1:
-            print("takkking offf")
+            print("\t\t\t\t\tSTATUS: Taking off")
             if LAUNCH_MODE == 1:
-                print("motion commander launch")
+                print("\t\t\t\t\tSTATUS: Motion commander launched")
                 #self.up(height, velocity)
                 #self.up(height, 1)
                 self.up(self.minimum_height,1)

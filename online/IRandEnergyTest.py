@@ -48,7 +48,7 @@ Proportion = 1.2 / 1.5
 MOVE_SIZE =  TARGET_SIZE  / Proportion #est m/s
 
 MOVE_SIZE = 0.5
-TURN_SIZE =  45 #est degs/sec
+TURN_SIZE =  30 #est degs/sec
 RISE_SIZE = 0.05 #m
 
 MOVE_SPEED = 0.25
@@ -65,7 +65,7 @@ launch_type = 1
 
 #commandLookup = ["stabilizing...", "forward", "reverse", "left", "right", "yaw left", "yaw right", "ascending", "descending"]
 
-commands = [0,0,1,1,1,1,0,10]
+commands = [0,0,1,1,1,1,1,1,1,0,10]
 #0 = stall
 #1 = fw
 #2 = rv
@@ -127,12 +127,13 @@ def irEvent(state):
 	#print("Doing IR Event")
 
 	# global dr_x
-	
+
 	# Start checking
 	# Drone Yaw Left
 	mc.turn_left(TURN_SIZE)
 	mc.turn_left(TURN_SIZE)
-
+	mc.turn_left(TURN_SIZE)
+	mc.stop()
 	time.sleep(1)
 
 	ir_and_energy() # Get a reading
@@ -144,15 +145,17 @@ def irEvent(state):
 		mc.forward(MOVE_SIZE, velocity=MOVE_SPEED)
 		# dr_x -= 0.5     !!! DR value - Uncomment this when merging code to integ.
 		mc.turn_right(TURN_SIZE)
-		time.sleep(0.5)
 		mc.turn_right(TURN_SIZE)
+		mc.turn_right(TURN_SIZE)
+		mc.stop()
 		state = 1
 	# Else, yaw right (State 00)
 	else:
 		print("Left is no good. Checking Right")
 		mc.turn_right(TURN_SIZE)
-		time.sleep(0.5)
 		mc.turn_right(TURN_SIZE)
+		mc.turn_right(TURN_SIZE)
+		mc.stop()
 		state = 0
 
 	# If none of that worked, check right side.
@@ -160,8 +163,9 @@ def irEvent(state):
 
 	if (state == 0):
 		mc.turn_right(TURN_SIZE)
-		time.sleep(0.5)
 		mc.turn_right(TURN_SIZE)
+		mc.turn_right(TURN_SIZE)
+		mc.stop()
 
 		ir_and_energy() # Get a reading
 		time.sleep(1)
@@ -172,15 +176,17 @@ def irEvent(state):
 			mc.forward(MOVE_SIZE, velocity=MOVE_SPEED)
 			# dr_x += 0.5     !!! DR value - Uncomment this when merging code to integ.
 			mc.turn_left(TURN_SIZE)
-			time.sleep(0.5)
+			mc.turn_left(TURN_SIZE)
 			mc.turn_left(TURN_SIZE) # Make it face right
+			mc.stop()
 			state = 2
 		# Else, yaw left then land
 		else:
 			print("No available paths. Landing now.")
 			mc.turn_left(TURN_SIZE)
-			time.sleep(0.5)
 			mc.turn_left(TURN_SIZE)
+			mc.turn_left(TURN_SIZE)
+			mc.stop()
 			# gonna force the entire sequence to kill everything
 			# uncomment when integrating with main code
 			# commands.insert(0, 10)

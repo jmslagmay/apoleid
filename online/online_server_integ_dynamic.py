@@ -153,7 +153,8 @@ def import_db(station_count):
     global fp_db
 
     #db = open("rss_db_427.csv", "r")
-    db = open("dummy_db1.csv", "r")
+    #db = open("dummy_db1.csv", "r")
+    db = open("rss_db_514.csv", "r")
     db_content = db.read()
     db.close()
 
@@ -416,7 +417,7 @@ if __name__ == "__main__":
     n = 0
     index = 0
     RECV_BUFFER = 4096 # Advisable to keep it as an exponent of 2
-    STATION_COUNT = 1
+    STATION_COUNT = 3
 
     global RSS_data
     global csv_data
@@ -561,9 +562,9 @@ if __name__ == "__main__":
                                                 measured_rss = []
 
                                                 for i in range (1, STATION_COUNT + 1):
-
                                                     #measured_rss = measured_rss + rss_data[str(i)]
                                                     measured_rss.append(rss_data[str(i)])
+                                                print(measured_rss)
 
                                                 if op_started == 0:
                                                     op_started = 1

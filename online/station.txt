@@ -1,0 +1,69 @@
+Station No: Station No: Connected to remote host. Start sending messages
+SERVER COMMAND: get_rssi 0 0 0
+RSSI: 46
+REPLY: rss 1 46
+SERVER COMMAND: connect 1
+				STATUS: Commander thread start
+1
+1
+				STATUS: Connecting to radio://0/70/2M
+				STATUS: Connected to radio://0/70/2M
+0.125
+REPLY: Connected to Station 1
+SERVER COMMAND: get_batt
+here
+entered get_batt func
+get_batt_flag: 0
+batt 70
+REPLY: batt 70
+SERVER COMMAND: command 1
+[1]
+takkking offf
+motion commander launch
+Starting Sequence
+228:sum| IR |value: 301 ~~~ CHILL ~~~
+
+COM: forward.		-1 commands left before landing.
+REPLY: Command done
+18:sum| IR |value: 12 ~~~ CHILL ~~~
+
+SERVER COMMAND: get_rssi
+Logging RSS
+REPLY: rss 1 41
+SERVER COMMAND: get_dr_loc
+dr_loc 0 0.5 0 1
+REPLY: dr_loc 0 0.5 0 1
+SERVER COMMAND: get_batt
+here
+entered get_batt func
+get_batt_flag: 0
+batt 3
+REPLY: batt 3
+SERVER COMMAND: command 1
+[1]
+COM: forward.		-1 commands left before landing.
+REPLY: Command done
+305:sum| IR |value: 341 ~~~ CHILL ~~~
+
+SERVER COMMAND: get_rssi
+Logging RSS
+REPLY: rss 1 43
+SERVER COMMAND: get_dr_loc
+dr_loc 0 1.0 0 1
+REPLY: dr_loc 0 1.0 0 1
+SERVER COMMAND: get_batt
+here
+entered get_batt func
+get_batt_flag: 0
+batt -1
+REPLY: batt -1
+SERVER COMMAND: command 10
+[10]
+!!!-Starting Landing Sequence-!!!
+hello
+Sequence Finished
+DONE
+Now closing
+REPLY: Command done
+SERVER COMMAND: get_rssi
+Station No: 

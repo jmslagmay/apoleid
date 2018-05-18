@@ -42,7 +42,7 @@ angle = 0
 
 commandLookup = ["stabilizing...", "forward", "reverse", "left", "right", "yaw left", "yaw right", "ascending", "descending"]
 
-commands = [0,1,9]
+commands = [0,1,1,1,1,1,1,1,1,1,9]
 #0 = stall
 #1 = fw
 #2 = rv
