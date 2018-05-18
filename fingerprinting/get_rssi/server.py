@@ -190,7 +190,7 @@ if __name__ == "__main__":
                                                 #print (z)
                                                 print ("Done getting RSSI...")
 
-                                                db = open("rss_db_514.csv", "a")
+                                                db = open("rss_db_test518.csv", "a")
                                                 db.write(to_db)
                                                 db.close()
 

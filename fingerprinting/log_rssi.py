@@ -33,7 +33,7 @@ for _ in range(3):
         rssi_sum += pk.data[2]
         count += 1
         print (count)
-    
+
 
     #print (pk.ack)
     #print (pk.data[2])
@@ -48,6 +48,3 @@ to_db = x + "," + y + "," + z + "," + str(rss)
 
 db = open("rss_db.csv", "a")
 db.write(to_db)
-
-
-

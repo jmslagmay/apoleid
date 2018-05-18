@@ -49,7 +49,7 @@ else:
             #print("RSSI: -{}dBm".format(pk.data[2]))
             rssi_sum += pk.data[2]
             count += 1
-            print (count)
+            #print (count)
     rss = rssi_sum/count
 
 
