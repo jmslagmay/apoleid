@@ -40,7 +40,7 @@ if __name__ == "__main__":
 
     STATION_COUNT = 3
     K = 2
-    done = 0
+    radius = 4
 
     import_db(STATION_COUNT)
 
@@ -100,8 +100,9 @@ if __name__ == "__main__":
             z = float(fp_db['Z'][i])
             done = 1
 
+
     if done == 0:
-        #computing weights from euclidean distances
+    #computing weights from euclidean distances
         for i in range(0, len(data) - 1):
             num = 1 / D[i]
             weight.append(num)
@@ -122,7 +123,6 @@ if __name__ == "__main__":
 
         #getting the location by using the formula for KWNN
         # K nearest neighbors
-
         denominator = 0
         for i in range (0, K):
             denominator = denominator + (weight[index_knn[i]])
