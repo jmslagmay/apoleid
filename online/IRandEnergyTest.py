@@ -189,7 +189,7 @@ def irEvent(state):
 			mc.stop()
 			# gonna force the entire sequence to kill everything
 			# uncomment when integrating with main code
-			# commands.insert(0, 10)
+			commands.insert(0, 10)
 			state = 0
 
 	# Keep track of the current grid alignment
