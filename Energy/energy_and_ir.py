@@ -8,7 +8,7 @@ from cflib.crazyflie.log import LogConfig
 
 logging.basicConfig(level=logging.ERROR)
 floatzero = float(0)
-status_check_duration = 20
+status_check_duration = 60
 
 ir_sum = 0
 prev_ir_sum = 0
