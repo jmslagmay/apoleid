@@ -42,12 +42,12 @@ TARGET_SIZE = 0.5 #meters per movement
 Proportion = 1.2 / 1.5    #real output / target output
 MOVE_SIZE =  TARGET_SIZE  / Proportion #more accurate meters per movemet
 
-MOVE_SIZE = 0.5    # comment out to do accurate movement vs predefined intervals
+MOVE_SIZE = 0.7    # comment out to do accurate movement vs predefined intervals
 TURN_SIZE =  45 #est degs/sec
 RISE_SIZE = 0.05 #m
 
 MOVE_SPEED = 0.25
-MAX_STALL_TIME = 5
+MAX_STALL_TIME = 7
 
 #vectors
 
@@ -275,7 +275,7 @@ class commander(threading.Thread):
                                 appends = 0
 
                             #print ("COM: " + str(commandLookup[commands[0]]) + ".\t\t" + str(len(commands) - 2) + " commands left before landing.")
-                            print("\t\t\t\tSTATUS: %s command" % str(commandLookup[commands[0]]))
+                            print("\t\t\t\t\tSTATUS: %s command" % str(commandLookup[commands[0]]))
 
                             commander_busy = 0
                             commands.pop(0)
@@ -429,6 +429,10 @@ def battery_voltage(floatvolt = floatzero):
         battery_avg = (battery_avg + floatvolt)/2
 
     batt_percentage = ((battery_avg - LOW_BATTERY_FLY) *100) / (MAX_BATTERY - LOW_BATTERY_FLY)
+    if batt_percentage < 0:
+        batt_percentage = 0
+    else:
+        pass
     #print(str(battery_avg) + " " + str(LOW_BATTERY_FLY))
     #print('%s Battery = %d\n\n%d %%' % (floatvolt,battery_avg,batt_percentage))
 

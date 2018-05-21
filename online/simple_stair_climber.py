@@ -28,7 +28,7 @@ TARGET_SIZE = 0.5 #meters per movement
 Proportion = 1.2 / 1.5	#real output / target output
 MOVE_SIZE =  TARGET_SIZE  / Proportion #more accurate meters per movemet
 
-MOVE_SIZE = 0.5	# comment out to do accurate movement vs predefined intervals
+MOVE_SIZE = 0.7	# comment out to do accurate movement vs predefined intervals
 
 
 TURN_SIZE =  45 #est degs/sec
@@ -54,10 +54,10 @@ launch_type = 1
 commandLookup = ["hovering", "forward", "reverse", "left", "right", "yaw left", "yaw right", "ascending", "descending"]
 
 # go up stairs
-commands = [0,7,7,7,7,7,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,90,0,1,1,1,1,1,0,90,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,10]
+commands = [0,1,1,1,1,1,1,10]#,7,7,7,7,7,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,90,0,1,1,1,1,1,0,90,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,10]
 
 #go down stairs
-#commands = [0,7,7,7,7,7,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,270,0,1,1,1,1,1,0,270,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,10]
+#commands = [0,1,107,7,7,7,7,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,270,0,1,1,1,1,1,0,270,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,10]
 
 
 #0 = stall

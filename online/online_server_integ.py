@@ -43,7 +43,7 @@ class commanding_thread(threading.Thread):
 
         global batt
 
-        room_lookup = {'209': [0, -1, 0], '210': [0, -1, 0], '207': [0, 0, 0], '208': [0, 0, 0], '206': [0, 7, 0], '204': [0, 9, 0], '205': [0, 12, 0], '201': [0, 19, 0], '203': [0, 19, 0], '202': [0, 21, 0], '220': [-20, 24, 0], '225': [-46, 24, 0], '226': [-48, 30, 0], '227': [-48, 28, 0], '228': [-48, 21, 0], '229': [-48, 15, 0]}
+        room_lookup = {'209': [0, -1, 0], '210': [0, -1, 0], '207': [0, 0, 0], '208': [0, 1, 0], '206': [0, 7, 0], '204': [0, 9, 0], '205': [0, 12, 0], '201': [0, 19, 0], '203': [0, 19, 0], '202': [0, 21, 0], '220': [-20, 24, 0], '225': [-46, 24, 0], '226': [-48, 30, 0], '227': [-48, 28, 0], '228': [-48, 21, 0], '229': [-48, 15, 0]}
         #print(room_lookup)
         #print(room_lookup['209'][1])
 
@@ -53,7 +53,7 @@ class commanding_thread(threading.Thread):
 
             if op_started == 0 and count == 0:
                 count += 1
-                print (count)
+                #print (count)
                 text = input('')
 
                 #broadcast_data(self.s_sock, text)
@@ -83,7 +83,7 @@ class commanding_thread(threading.Thread):
                         #op_started = 1
 
             else:
-                print("Connected: %d" % connected)
+                #print("Connected: %d" % connected)
                 if cycle_on == 0 and connected == 1:
                     cycle_on = 1
 
@@ -192,7 +192,8 @@ def import_db(station_count):
     global fp_db
 
     #db = open("rss_db_427.csv", "r")
-    db = open("dummy_db1.csv", "r")
+    #db = open("dummy_db1.csv", "r")
+    db = open("rss_db_514.csv", "r")
     db_content = db.read()
     db.close()
 
@@ -224,14 +225,14 @@ def import_db(station_count):
 def compute_loc(station_count, measured_rss):
 
     global radius
-    K = 4
+    K = 2
 
     #print("1")
     index_knn = []
 
     D = []
     weight = []
-    radius = 6 #radius of dynamic subarea
+    radius = 3 #radius of dynamic subarea
 
     #print("2")
     #computing euclidean distances and storing them to list D
@@ -245,7 +246,7 @@ def compute_loc(station_count, measured_rss):
 
     #print("3")
 
-    print(D)
+    #print(D)
 
     #checking if there is a point wherein the
     #euclidean distance is 0
@@ -459,7 +460,7 @@ if __name__ == "__main__":
     n = 0
     index = 0
     RECV_BUFFER = 4096 # Advisable to keep it as an exponent of 2
-    STATION_COUNT = 1
+    STATION_COUNT = 3
 
     global RSS_data
     global csv_data
@@ -566,7 +567,7 @@ if __name__ == "__main__":
                         #server_input = commanding_thread(server_socket)
                         server_input.start()
                         thread_start = 1
-                        print ("hey")
+                        #print ("hey")
 
 
                 #Some incoming message from a client
@@ -621,7 +622,7 @@ if __name__ == "__main__":
                                                     op_started = 1
                                                     print ("\t\t\t\tSTATUS: Finding a station...")
                                                     minimum = min(measured_rss)
-                                                    print(measured_rss)
+                                                    #print(measured_rss)
                                                     print(minimum)
                                                     station = measured_rss.index(minimum) + 1
                                                     print("\t\t\t\tSTATUS: Connecting to Station %d..." % station)
