@@ -47,7 +47,7 @@ TURN_SIZE =  45 #est degs/sec
 RISE_SIZE = 0.05 #m
 
 MOVE_SPEED = 0.25
-MAX_STALL_TIME = 7
+MAX_STALL_TIME = 10
 
 #vectors
 
@@ -217,11 +217,27 @@ class commander(threading.Thread):
                                 mc.turn_left(TURN_SIZE)
                                 time.sleep(0.5)
                                 mc.turn_left(TURN_SIZE)
+                                if (orientation == 0):
+                                    orientation = 1
+                                elif (orientation == 1):
+                                    orientation = 2
+                                elif (orientation == 2):
+                                    orientation = 3
+                                elif (orientation == 3):
+                                    orientation = 0
                                 #print ("yaw left")
                             elif commands[0] == 6:
                                 mc.turn_right(TURN_SIZE)
                                 time.sleep(0.5)
                                 mc.turn_right(TURN_SIZE)
+                                if (orientation == 0):
+                                    orientation = 3
+                                elif (orientation == 1):
+                                    orientation = 2
+                                elif (orientation == 2):
+                                    orientation = 1
+                                elif (orientation == 3):
+                                    orientation = 0
                                 #print ("yaw right")
 
 
@@ -254,12 +270,13 @@ class commander(threading.Thread):
 
                             elif commands[0] == 11:
                                 #++++++++++++++++++++++++++++++++++++++++++ Landing Drone=
-                                print("\t\t\t\tSTATUS: Preparing for handoff")
+                                #print("\t\t\t\tSTATUS: Preparing for handoff")
+                                print("\t\t\t\t\tSTATUS: Landing")
                                 mc.land2()
                                 #print ("hello")
                                 done = 1
                                 commander_busy = 0
-                                connected = 0
+                                #connected = 0 #uncomment for handoff
                                 break
 
                             elif commands[0] == 360:
@@ -341,7 +358,7 @@ def get_rssi(sock, station_no):
 
     count = 0
     rss = 0
-    x = 20 # number of rss readings to average
+    x = 3 # number of rss readings to average
 
     #get x no. of RSS then average
     if drone_present:

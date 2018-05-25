@@ -118,21 +118,21 @@ class commanding_thread(threading.Thread):
                     if self.running == 0:
                         break
 
-                    if command == 11:
-                        # INSERT CODE FOR CONNECT TO STATION HERE AFTER HANDOFF
-                        connected = 0
-                        print("\t\t\t\tSTATUS: Starting handoff")
-                        #temporarily, connect to state 1
-                        text = "connect 1"
-                        broadcast_data(self.s_sock, text)
+                    #if command == 11:
+                    #    # INSERT CODE FOR CONNECT TO STATION HERE AFTER HANDOFF
+                    #    connected = 0
+                    #    print("\t\t\t\tSTATUS: Starting handoff")
+                    #    #temporarily, connect to state 1
+                    #    text = "connect 1"
+                    #    broadcast_data(self.s_sock, text)
                         #connecting_flag = 1
                         #while connecting_flag == 1:
-                        while connected == 0:
-                            if self.running:
-                                pass
-                            else:
-                                break
-                        print("\t\t\t\tSTATUS: Handoff done")
+                    #    while connected == 0:
+                    #        if self.running:
+                    #            pass
+                    #        else:
+                    #            break
+                    #    print("\t\t\t\tSTATUS: Handoff done")
 
                     #print("hey " + str(command_done) + " " + str(get_rss_flag))
                     command_done = 0
@@ -627,6 +627,7 @@ if __name__ == "__main__":
                                                     station = measured_rss.index(minimum) + 1
                                                     print("\t\t\t\tSTATUS: Connecting to Station %d..." % station)
                                                     text = "connect " + str(station)
+                                                    #text = "connect 2"
                                                     #print("Text")
                                                     broadcast_data(server_socket, text)
                                                     #print("Text broadcasted")
